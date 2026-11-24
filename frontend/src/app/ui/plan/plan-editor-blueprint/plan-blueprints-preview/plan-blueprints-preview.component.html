@@ -39,7 +39,7 @@
                         <div class="selection-header--title">{{'PLAN-BLUEPRINT-PREVIEW.LIST-OF-BLUEPRINTS.QUESTION' | translate}}</div>
                         <div
                             role="button"
-                            (click)="openImportPlanDialog()"
+                            tabindex="0" (click)="openImportPlanDialog()" (keydown.enter)="$event.preventDefault(); openImportPlanDialog()" (keydown.space)="$event.preventDefault(); openImportPlanDialog()"
                             class="import-plan-btn w-100"
                             data-tour="plan-new-import"
                             [attr.aria-label]="'START-NEW-PLAN-DIALOG.IMPORT-FROM-FILE' | translate"
@@ -263,12 +263,12 @@
     }
 </div>
 @if(importPlanDialogOpen){
-    <plan-upload-dialog class="import-plan-dialog-container" (onClose)="onImportPlanDialogClosed($event)"/>
+    <plan-upload-dialog class="import-plan-dialog-container" role="dialog" aria-modal="true" [attr.aria-label]="'PLAN-UPLOAD.TITLE' | translate" cdkTrapFocus cdkTrapFocusAutoCapture (keydown.escape)="onImportPlanDialogClosed()" (onClose)="onImportPlanDialogClosed($event)"/>
 }
 <ng-template #blueprintButtonTemplate let-blueprint="blueprint">
     <div
         role="button"
-        (click)="selectBlueprint(blueprint)"
+        tabindex="0" [attr.aria-pressed]="!!selectedBlueprint && blueprint.groupId === selectedBlueprint.groupId" (click)="selectBlueprint(blueprint); revealPreview()" (keydown.enter)="selectBlueprint(blueprint)" (keydown.space)="$event.preventDefault(); selectBlueprint(blueprint)"
         class="blueprint-select-btn w-100"
         data-tour="plan-new-blueprint"
         [class.selected]=" selectedBlueprint && blueprint.groupId == selectedBlueprint.groupId"
@@ -497,7 +497,7 @@
                                 @if(!section.descriptionTemplates?.length){
                                     @if(section.canEditDescriptionTemplates){
                                         {{'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.TEMPLATES-IN-SECTION.MESSAGE' | translate }}
-                                        <span role="button" class="templates-dialog-btn" (click)="openDialog()" [attr.aria-label]="'ALT-TEXT.OPEN-DIALOG' | translate">
+                                        <span role="button" tabindex="0" class="templates-dialog-btn" (click)="openDialog()" (keydown.enter)="openDialog()" (keydown.space)="$event.preventDefault(); openDialog()" [attr.aria-label]="'ALT-TEXT.OPEN-DIALOG' | translate">
                                             {{'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.TEMPLATES-IN-SECTION.LINK-TEXT' | translate }}
                                         </span>
                                     }@else{

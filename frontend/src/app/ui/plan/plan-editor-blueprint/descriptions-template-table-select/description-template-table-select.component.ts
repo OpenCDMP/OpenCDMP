@@ -24,7 +24,8 @@ import { MatIconButton, MatButton } from "@angular/material/button";
 import { MatCard, MatCardContent } from "@angular/material/card";
 import { ExpandableSearchFieldComponent } from "../../../../../common/modules/text-filter/expandable-search-field/expandable-search-field.component";
 import { NgTemplateOutlet, AsyncPipe, DatePipe } from "@angular/common";
-import { MatMenuTrigger, MatMenu } from "@angular/material/menu";
+import { MatMenuTrigger, MatMenu, MatMenuContent } from "@angular/material/menu";
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { MatBadge } from "@angular/material/badge";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -38,7 +39,7 @@ import { TranslatePipe } from "@ngx-translate/core";
     templateUrl: './description-template-table-select.component.html',
     styleUrls: ['./description-template-table-select.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatChipSet, MatChip, MatTooltip, MatChipRemove, MatIcon, MatIconButton, MatCard, MatCardContent, ExpandableSearchFieldComponent, FormsModule, ReactiveFormsModule, NgTemplateOutlet, MatMenuTrigger, MatBadge, MatMenu, MatButton, MatFormField, MatLabel, MatInput, MatAutocompleteTrigger, MatAutocomplete, MatOption, MatPaginator, AsyncPipe, DatePipe, TranslatePipe]
+    imports: [MatChipSet, MatChip, MatTooltip, MatChipRemove, MatIcon, MatIconButton, MatCard, MatCardContent, ExpandableSearchFieldComponent, FormsModule, ReactiveFormsModule, NgTemplateOutlet, MatMenuTrigger, MatBadge, MatMenu, MatMenuContent, CdkTrapFocus, MatButton, MatFormField, MatLabel, MatInput, MatAutocompleteTrigger, MatAutocomplete, MatOption, MatPaginator, AsyncPipe, DatePipe, TranslatePipe]
 })
 export class DescriptionTemplateTableSelectComponent extends BaseComponent implements OnInit {
     templatesInUse = input<Guid[]>();

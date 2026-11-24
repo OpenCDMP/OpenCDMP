@@ -17,8 +17,8 @@
       </div>
     }
   }
-  <button mat-icon-button (click)="addUser()" [disabled]="viewOnly">
-    <mat-icon>add</mat-icon>
+  <button mat-icon-button (click)="addUser()" [disabled]="viewOnly" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-USER' | translate">
+    <mat-icon aria-hidden="true">add</mat-icon>
   </button>
   @if (form.dirty && form.hasError('required')) {
     <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>

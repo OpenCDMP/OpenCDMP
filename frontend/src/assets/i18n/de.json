@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "laden...",
-			"NO-ITEMS": "Keine Ergebnisse gefunden!"
+			"NO-ITEMS": "Keine Ergebnisse gefunden!",
+			"OPTION-ACTION-HINT": "Drücken Sie Strg+Eingabe, um die Details der markierten Option anzuzeigen"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Text eingeben"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Ein Feld verweist auf einen DMP, der in dieser Installation nicht existiert (id: {{id}}). Entfernen Sie diesen Wert.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Ein Feld verweist auf eine Ressource, die in dieser Installation nicht existiert (id: {{id}}). Entfernen Sie diesen Wert.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Sie können sich keine Admin-Rolle selbst entziehen.",
-			"LAST-TENANT-ADMIN": "Eine Organisation braucht mindestens einen Organisations-Admin. Machen Sie zuerst jemand anderen zum Organisations-Admin."
+			"LAST-TENANT-ADMIN": "Eine Organisation braucht mindestens einen Organisations-Admin. Machen Sie zuerst jemand anderen zum Organisations-Admin.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Diese Ressourcenvorlage kann nicht gelöscht werden, da Ressourcen sie verwenden."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Warnung!",
@@ -596,6 +598,8 @@
 			"NEW": "Neu",
 			"CREATE": "Erstellen",
 			"TEST": "Testen",
+			"CLEAR": "Leeren",
+			"VIEW-DETAILS": "Details anzeigen",
 			"BOOLEAN": {
 				"YES": "Ja",
 				"NO": "Nein"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Verbindung",
 				"CONNECTION-TENANT": "Wo das Plugin läuft und wie sich die Plattform dort anmeldet.",
 				"CONNECTION-INSTALLATION": "Dieses Plugin wird von der Installation bereitgestellt, die auch seine Verbindung verwaltet. Sie können trotzdem prüfen, ob es antwortet.",
+				"BENCHMARKS": "Benchmarks",
+				"BENCHMARKS-HINT": "Welche Benchmarks und Tests dieses Evaluators Ihre Benutzer ausführen können.",
 				"REMOVE": "Plugin entfernen",
 				"REMOVE-CONFIRM": "{{name}} entfernen? Ihre Benutzer sehen es dann nicht mehr. Dabei werden auch alle anderen ungespeicherten Änderungen auf dieser Seite gespeichert."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Alle Benchmarks und Tests anbieten",
+				"BENCHMARKS": "Benchmarks",
+				"TESTS": "Tests",
+				"NO-BENCHMARKS": "Dieser Evaluator bietet keine Benchmarks an.",
+				"NO-TESTS": "Dieser Evaluator bietet keine Tests an.",
+				"UNAVAILABLE": "Die Benchmarks und Tests erscheinen, sobald der Evaluator eingeschaltet, gespeichert und erreichbar ist."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Eine neue Version des Blueprints, den Sie zum Erstellen dieses DMP verwendet haben, ist jetzt verfügbar. Sie können sie nutzen, indem Sie eine neue Version des DMP erstellen.",
 		"PID-FINALIZE-MESSAGE": "Sie müssen den DMP finalisieren, bevor Sie ihn hinterlegen.",
 		"PID-PUBLISH-MESSAGE": "Veröffentlichen Sie den Plan in einem Repository, um eine DOI zu erhalten.",
+		"PUBLISHING": "Wird seit {{time}} in {{repository}} veröffentlicht.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Angehängte Datei. Zum Vorschauen anmelden",
 		"COLLABORATORS": "Mitwirkende",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Fügen Sie mindestens eine Option hinzu",
 			"INPUT-UPLOAD-TYPES": "Wählen Sie die erlaubten Dateitypen",
 			"INPUT-INVALID": "Eine Eingabeeinstellung ist ungültig",
+			"RULE-TARGET-MISSING": "Eine Regel zeigt eine Frage, die nicht mehr existiert",
 			"REPEATABLE": "Die Wiederholungseinstellungen sind ungültig.",
 			"QUESTIONS-OK": "Jede Frage hat einen Titel und mindestens eine Eingabe.",
 			"NO-ICON": "Kein Symbol gesetzt. Autoren sehen das Standardsymbol.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Anzuzeigende Frage",
 			"PICK-TARGET": "Frage wählen",
 			"TARGET-REQUIRED": "Wählen Sie die anzuzeigende Frage.",
+			"TARGET-MISSING": "Die Frage, die diese Regel angezeigt hat, existiert nicht mehr. Wählen Sie eine andere.",
 			"QUESTIONS": "Fragen",
 			"INPUTS": "Einzelne Eingaben",
+			"SECTIONS": "Abschnitte",
 			"REMOVE": "Regel entfernen",
 			"YES": "Ja",
 			"NO": "Nein",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Kontakt hinzufügen",
 			"SEARCH-CONTACT": "Kontakt suchen",
 			"REMOVE-USER": "Benutzer entfernen",
+			"ADD-USER": "Benutzer hinzufügen",
 			"SAVE-AND-CLOSE": "Speichern & Schließen",
 			"SAVE-AND-CONTINUE": "Speichern & Weiter",
 			"REVERSE": "Finalisierung rückgängig machen",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Benutzer entfernen",
+			"ADD-USER": "Benutzer hinzufügen",
 			"INVITE": "Einladen"
 		},
 		"USERS-REQUIRED": "Mindestens ein Benutzer erforderlich",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Standard",
 		"DEFAULT-OPTION-WITH-VALUE": "Standard ({{value}})",
 		"DEFAULT-VALUE-HINT": "Standard: {{value}}",
+		"SHOW-VALUE": "{{field}} anzeigen",
+		"HIDE-VALUE": "{{field}} ausblenden",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "DMP-DOCX-Vorlage",

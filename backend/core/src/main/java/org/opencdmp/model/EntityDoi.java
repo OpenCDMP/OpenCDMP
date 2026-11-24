@@ -1,5 +1,6 @@
 package org.opencdmp.model;
 
+import org.opencdmp.commons.enums.EntityDoiStatus;
 import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.model.entitydoi.EntityDoiMetadata;
@@ -51,6 +52,17 @@ public class EntityDoi {
 
     private EntityDoiMetadata metadata;
     public static final String _metadata = "metadata";
+
+    private EntityDoiStatus status;
+    public static final String _status = "status";
+
+    public EntityDoiStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(EntityDoiStatus status) {
+        this.status = status;
+    }
 
     public EntityDoiMetadata getMetadata() {
         return metadata;

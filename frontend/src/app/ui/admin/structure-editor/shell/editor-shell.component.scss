@@ -87,6 +87,19 @@
 }
 
 @media (max-width: 1100px) {
+	// align-items: flex-start would size the main column to its content, not the screen.
 	.bp2-body { flex-direction: column; }
+	.bp2-main { align-self: stretch; }
 	.bp2-problems { order: -1; align-self: stretch; position: static; width: auto; max-height: none; margin: 1.25rem 1.5rem 0; box-shadow: none; }
+}
+
+// Same breakpoint as the app sidebar overlay (SideNavService): the actions drop below the breadcrumb and wrap.
+@media (max-width: 991px) {
+	.bp2-header { padding: 0 1rem; }
+	.bp2-header__row { flex-wrap: wrap; padding: .5rem 0; }
+	.bp2-header__actions { flex: 1 1 auto; flex-wrap: wrap; }
+	.bp2-tabs { flex-wrap: wrap; }
+	.bp2-tab { padding: 0 .5rem; }
+	.bp2-ready { margin: .25rem 0 .625rem; }
+	.bp2-main { padding: 1rem 1rem 2rem; }
 }

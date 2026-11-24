@@ -4,6 +4,7 @@
 	gap: 20px;
 	align-items: flex-start;
 	margin-bottom: 40px;
+	container-type: inline-size;
 }
 
 .nt-types {
@@ -20,6 +21,15 @@
 	background: var(--mat-sys-surface);
 	border: 1px solid var(--mat-sys-outline-variant);
 	border-radius: 12px;
+}
+
+// Below 240 + 20 + 460px the editor wraps under the list; a still-sticky list would then cover it while scrolling.
+@container (max-width: 719px) {
+	.nt-types {
+		position: static;
+		flex-basis: 100%;
+		max-height: min(50vh, 24rem);
+	}
 }
 
 .nt-counts {

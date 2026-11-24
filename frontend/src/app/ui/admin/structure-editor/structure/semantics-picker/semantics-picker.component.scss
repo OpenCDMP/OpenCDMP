@@ -4,7 +4,7 @@
 .sem-box {
 	display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; min-height: 40px; padding: .25rem .5rem; box-sizing: border-box;
 	border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface); cursor: text;
-	&--open { outline: 2px solid var(--mat-sys-primary); outline-offset: -1px; border-color: transparent; }
+	&--open, &:focus-within { outline: 2px solid var(--mat-sys-primary); outline-offset: -1px; border-color: transparent; }
 }
 .sem-chip {
 	display: inline-flex; align-items: center; gap: 0; height: 26px; padding: 0 .25rem 0 .5rem; border-radius: 6px; background: var(--bp2-preset-bg); color: var(--mat-sys-primary); font-size: .8rem;

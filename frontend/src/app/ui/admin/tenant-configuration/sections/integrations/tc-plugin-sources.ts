@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { PluginType } from '@app/core/common/enum/plugin-type';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
+import { EvaluatorRestriction } from '@app/core/model/tenant-configuaration/tenant-configuration';
 import { DepositService } from '@app/core/services/deposit/deposit.service';
 import { EvaluatorService } from '@app/core/services/evaluator/evaluator.service';
 import { FileTransformerService } from '@app/core/services/file-transformer/file-transformer.service';
@@ -155,6 +156,21 @@ export class TcPluginSources {
 		control.markAsDirty();
 		control.setValue([...disabled]);
 		this.parts[entry.kind.slug].refreshDirty();
+	}
+
+	/** The benchmarks and tests an evaluator is limited to for the tenant, or null when it offers all of them. */
+	restriction(evaluatorId: string): EvaluatorRestriction | null {
+		const restrictions: EvaluatorRestriction[] = this.parts.evaluator.value()?.evaluatorPlugins?.restrictions ?? [];
+		return restrictions.find(x => x.evaluatorId === evaluatorId) ?? null;
+	}
+
+	/** Limits an evaluator to some of its benchmarks and tests; null lifts the limit. Takes effect when the section is saved. */
+	setRestriction(evaluatorId: string, restriction: EvaluatorRestriction | null): void {
+		const control = this.parts.evaluator.form()?.get('evaluatorPlugins')?.get('restrictions');
+		if (!control) return;
+		const others = ((control.value ?? []) as EvaluatorRestriction[]).filter(x => x.evaluatorId !== evaluatorId);
+		control.markAsDirty();
+		control.setValue(restriction ? [...others, restriction] : others);
 	}
 
 	/** The tenant's own source of this id, as a form group of the kind's part. */

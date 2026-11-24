@@ -1,6 +1,7 @@
 package org.opencdmp.query.lookup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.opencdmp.commons.enums.EntityDoiStatus;
 import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.EntityDoiQuery;
@@ -27,6 +28,12 @@ public class EntityDoiLookup extends Lookup {
 
     @Schema(description = SwaggerHelpers.EntityDoi.dois_description)
     private List<String> dois;
+
+    @Schema(description = SwaggerHelpers.EntityDoi.entityIds_description)
+    private List<UUID> entityIds;
+
+    @Schema(description = SwaggerHelpers.EntityDoi.statuses_description)
+    private List<EntityDoiStatus> statuses;
 
     public List<IsActive> getIsActive() {
         return isActive;
@@ -68,6 +75,22 @@ public class EntityDoiLookup extends Lookup {
         this.dois = dois;
     }
 
+    public List<UUID> getEntityIds() {
+        return entityIds;
+    }
+
+    public void setEntityIds(List<UUID> entityIds) {
+        this.entityIds = entityIds;
+    }
+
+    public List<EntityDoiStatus> getStatuses() {
+        return statuses;
+    }
+
+    public void setStatuses(List<EntityDoiStatus> statuses) {
+        this.statuses = statuses;
+    }
+
     public EntityDoiQuery enrich(QueryFactory queryFactory) {
         EntityDoiQuery query = queryFactory.query(EntityDoiQuery.class);
         if (this.isActive != null)
@@ -81,6 +104,10 @@ public class EntityDoiLookup extends Lookup {
         if (this.dois != null) {
             query.dois(this.dois);
         }
+        if (this.entityIds != null)
+            query.entityIds(this.entityIds);
+        if (this.statuses != null)
+            query.statuses(this.statuses);
 
         this.enrichCommon(query);
 

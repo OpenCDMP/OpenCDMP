@@ -955,4 +955,34 @@ public class ErrorThesaurusProperties {
         this.statusTransitionNotAllowed = statusTransitionNotAllowed;
     }
 
+    private ErrorDescription depositInProgress;
+
+    public ErrorDescription getDepositInProgress() {
+        return depositInProgress;
+    }
+
+    public void setDepositInProgress(ErrorDescription depositInProgress) {
+        this.depositInProgress = depositInProgress;
+    }
+
+    private ErrorDescription evaluationNotAllowed;
+
+    public ErrorDescription getEvaluationNotAllowed() {
+        return evaluationNotAllowed;
+    }
+
+    public void setEvaluationNotAllowed(ErrorDescription evaluationNotAllowed) {
+        this.evaluationNotAllowed = evaluationNotAllowed;
+    }
+
+    private ErrorDescription descriptionTemplateInUse;
+
+    public ErrorDescription getDescriptionTemplateInUse() {
+        return descriptionTemplateInUse;
+    }
+
+    public void setDescriptionTemplateInUse(ErrorDescription descriptionTemplateInUse) {
+        this.descriptionTemplateInUse = descriptionTemplateInUse;
+    }
+
 }

@@ -46,6 +46,7 @@ public class EvaluatorTenantConfigurationBuilder extends BaseBuilder<EvaluatorTe
             return new ArrayList<>();
 
         FieldSet sourcesFields = fields.extractPrefixed(this.asPrefix(EvaluatorTenantConfiguration._sources));
+        FieldSet restrictionsFields = fields.extractPrefixed(this.asPrefix(EvaluatorTenantConfiguration._restrictions));
 
         List<EvaluatorTenantConfiguration> models = new ArrayList<>();
         for(EvaluatorTenantConfigurationEntity d : data){
@@ -54,6 +55,9 @@ public class EvaluatorTenantConfigurationBuilder extends BaseBuilder<EvaluatorTe
             if (fields.hasField(this.asIndexer(EvaluatorTenantConfiguration._disabledSourceIds))) m.setDisabledSourceIds(d.getDisabledSourceIds() != null ? d.getDisabledSourceIds() : new ArrayList<>());
             if (!sourcesFields.isEmpty() && d.getSources() != null){
                 m.setSources(this.builderFactory.builder(EvaluatorSourceBuilder.class).authorize(this.authorize).build(sourcesFields, d.getSources()));
+            }
+            if (!restrictionsFields.isEmpty() && d.getRestrictions() != null){
+                m.setRestrictions(this.builderFactory.builder(EvaluatorRestrictionBuilder.class).authorize(this.authorize).build(restrictionsFields, d.getRestrictions()));
             }
             models.add(m);
         }

@@ -97,6 +97,10 @@
     &:not(.selected):hover, &:not(.selected):focus {
         box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
     }
+    // The scrolling list clips anything drawn outside the card
+    &:focus-visible {
+        outline-offset: -5px;
+    }
 
     &.selected{
         border-color: var(--mat-sys-primary);
@@ -147,6 +151,9 @@
         &:hover, &:focus {
             box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
         }
+        &:focus-visible {
+            outline-offset: -5px;
+        }
         .import-plan-btn--icon {
             background-color: var(--mat-sys-primary);
             color: var(--mat-sys-on-primary);
@@ -168,6 +175,7 @@
 }
 .blueprint-preview  {
     flex: 1;
+    min-width: 0;
     max-height: fit-content;
     box-shadow: 0px 3px 6px #0000001a;
     .blueprint-preview--header{
@@ -176,6 +184,7 @@
         border-bottom: 1px solid var(--mat-sys-outline-variant);
         .tools {
             width: 100%;
+            flex-wrap: wrap;
             .tool-btn {
                 display: flex;
                 gap: 0.25rem;
@@ -358,12 +367,40 @@ mat-icon, .mat-icon-fab  {
     top: variables.$navbar-height;
     bottom: 0;
     right: -100vw;
-	width: 500px;
+	width: min(500px, 100vw);
 	height: calc(100vh - variables.$navbar-height);
     animation: slide .3s forwards;
     background-color: var(--mat-sys-surface);
     z-index: 3;
     box-shadow: variables.$default-box-shadow;
+}
+
+// Same breakpoint as the app sidebar overlay (SideNavService): list and preview stack and scroll together.
+@media (max-width: 991px) {
+    .plan-blueprints-header {
+        padding: 0.75rem 1rem;
+    }
+    .plan-blueprints-preview {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+    .blueprint-selection {
+        min-width: 0;
+        width: 100%;
+        overflow-y: visible;
+        .blueprint-select-btn {
+            margin-right: 0;
+        }
+    }
+    .blueprint-preview {
+        flex: none;
+        max-height: none;
+        .blueprint-preview-wrapper .blueprint-preview-content {
+            overflow-y: visible;
+        }
+    }
 }
 
 // Read-only view (library): hide the wizard chrome, show only the selected blueprint full-width.

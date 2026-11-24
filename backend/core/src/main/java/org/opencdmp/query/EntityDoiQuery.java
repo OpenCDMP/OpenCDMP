@@ -10,6 +10,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commons.enums.EntityDoiStatus;
 import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
@@ -42,6 +43,8 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
     private Collection<String> dois;
 
     private Collection<UUID> entityIds;
+
+    private Collection<EntityDoiStatus> statuses;
 
     private Instant after;
 
@@ -157,6 +160,21 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
         return this;
     }
 
+    public EntityDoiQuery statuses(EntityDoiStatus value) {
+        this.statuses = List.of(value);
+        return this;
+    }
+
+    public EntityDoiQuery statuses(EntityDoiStatus... value) {
+        this.statuses = Arrays.asList(value);
+        return this;
+    }
+
+    public EntityDoiQuery statuses(Collection<EntityDoiStatus> values) {
+        this.statuses = values;
+        return this;
+    }
+
     public EntityDoiQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -199,7 +217,7 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
 
     @Override
     protected Boolean isFalseQuery() {
-        return this.isEmpty(this.ids) || this.isEmpty(this.isActives) || this.isEmpty(this.repositoryIds) || this.isEmpty(this.excludedIds) || this.isEmpty(this.types);
+        return this.isEmpty(this.ids) || this.isEmpty(this.isActives) || this.isEmpty(this.repositoryIds) || this.isEmpty(this.excludedIds) || this.isEmpty(this.types) || this.isEmpty(this.statuses);
     }
 
     @Override
@@ -275,6 +293,11 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
                 inClause.value(item);
             predicates.add(inClause);
         }
+        // a pending or failed deposit is not a DOI, so only a caller that asks for those statuses sees them
+        CriteriaBuilder.In<EntityDoiStatus> statusClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(EntityDoiEntity._status));
+        for (EntityDoiStatus item : this.statuses != null ? this.statuses : List.of(EntityDoiStatus.Published))
+            statusClause.value(item);
+        predicates.add(statusClause);
         if (this.after != null) {
             Predicate afterClause = queryContext.CriteriaBuilder.greaterThanOrEqualTo(queryContext.Root.get(PlanEntity._createdAt), this.after);
             predicates.add(afterClause);
@@ -301,6 +324,7 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, EntityDoiEntity._updatedAt, Instant.class));
         item.setIsActive(QueryBase.convertSafe(tuple, columns, EntityDoiEntity._isActive, IsActive.class));
         item.setMetadata(QueryBase.convertSafe(tuple, columns, EntityDoiEntity._metadata, String.class));
+        item.setStatus(QueryBase.convertSafe(tuple, columns, EntityDoiEntity._status, EntityDoiStatus.class));
         return item;
     }
 
@@ -326,6 +350,8 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
             return EntityDoiEntity._isActive;
         else if (item.match(EntityDoi._belongsToCurrentTenant))
             return EntityDoiEntity._tenantId;
+        else if (item.match(EntityDoi._status))
+            return EntityDoiEntity._status;
         else if (item.prefix(EntityDoi._metadata))
             return EntityDoiEntity._metadata;
         else

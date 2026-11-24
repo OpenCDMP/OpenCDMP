@@ -1,6 +1,16 @@
 <ng-container>
   <nav class="fixed-navbar" [attr.aria-label]="'ALT-TEXT.GLOBAL-NAVIGATION' | translate">
     <div class="container-fluid d-flex align-items-center h-100">
+      <button
+        id="sidenav-toggle"
+        class="navbar-item-sm"
+        mat-icon-button
+        (click)="toggleMyNav($event)"
+        [attr.aria-expanded]="sidenavService.isOpen()"
+        [attr.aria-label]="'ALT-TEXT.HAMBURGER' | translate"
+      >
+        <mat-icon aria-hidden="true">menu</mat-icon>
+      </button>
       <h1 class="logo mb-0" >
         <a [routerLink]="routerUtils.generateUrl(['home'])">
           <img class="logo-image" alt="{{('ALT-TEXT.GO-TO-MAIN' | translate) ?? 'go to main page'}}" [src]="'../../../assets/images/nav-logo' + configurationService.navLogoExtension">
@@ -14,7 +24,7 @@
 
       <ul class="ml-auto horizontal-list justify-content-end gap-half-rem" id="navigation" data-tour="navbar-account">
         <li class="navbar-item-sm ml-auto">
-          <button mat-icon-button [matMenuTriggerFor]="toggleMenu" [attr.aria-label]="'ALT-TEXT.USER-OPTIONS' | translate">
+          <button mat-icon-button [matMenuTriggerFor]="toggleMenu" #toggleMenuTrigger="matMenuTrigger" [attr.aria-label]="'ALT-TEXT.USER-OPTIONS' | translate">
             <mat-icon aria-hidden="true">more_horiz</mat-icon>
           </button>
         </li>
@@ -49,7 +59,7 @@
           </li>
 
           @if (authentication.hasPermission(authentication.permissionEnum.ViewMineInAppNotificationPage)) {
-            <li class="navbar-item-lg">
+            <li>
               <mat-menu #languageMenu="matMenu" class="nav-mat-menu">
                 <app-language (languageChange)="getLanguage($event)"></app-language>
               </mat-menu>
@@ -90,7 +100,8 @@
 </ng-container>
 
 
-<mat-menu #supportMenu="matMenu">
+<!-- On small screens these open from inside the ⋯ menu without being its submenus, so choosing an item has to close that too. -->
+<mat-menu #supportMenu="matMenu" (closed)="$event === 'click' && toggleMenuTrigger.closeMenu()">
     @if (tourState.hasPageTour()) {
         <button mat-menu-item (click)="tourState.startPageTour()">
             <mat-icon class="material-symbols-outlined" aria-hidden="true">tour</mat-icon>
@@ -126,7 +137,7 @@
     <app-tenant-switch [tenants]="tenants"></app-tenant-switch>
 </mat-menu>
 
-<mat-menu #userMenu="matMenu" class="user-menu">
+<mat-menu #userMenu="matMenu" class="user-menu" (closed)="$event === 'click' && toggleMenuTrigger.closeMenu()">
     <a mat-menu-item class="profile" [routerLink]="routerUtils.generateUrl('/profile')">
         <mat-icon class="material-symbols-outlined" aria-hidden="true">person</mat-icon>
         {{'USER-DIALOG.USER-PROFILE' | translate}}
@@ -140,22 +151,22 @@
 </mat-menu>
 
 <mat-menu #toggleMenu="matMenu">
-    <ul class="list m-2">
-        <li class="d-flex justify-content-center" (click)="$event.stopPropagation()">
+    <ul class="list m-2" role="none">
+        <li class="d-flex justify-content-center" role="none" (click)="$event.stopPropagation()">
             <ng-container *ngTemplateOutlet="userSettingsTemplate" tabindex="0"/>
         </li>
         @if(supportItems?.length){
-            <li (click)="$event.stopPropagation()" tabindex="0">
+            <li role="none" (click)="$event.stopPropagation()">
                 <ng-container *ngTemplateOutlet="supportTemplate"></ng-container>
             </li>
         }
 
-        <li (click)="$event.stopPropagation()" tabindex="0">
+        <li role="none" (click)="$event.stopPropagation()">
             <ng-container *ngTemplateOutlet="languageTemplate"></ng-container>
         </li>
         
         @if (isAuthenticated()) {
-          <li (click)="$event.stopPropagation()" tabindex="0">
+          <li role="none" (click)="$event.stopPropagation()">
             <ng-container *ngTemplateOutlet="tenantSelectTemplate"></ng-container>
           </li>
         }

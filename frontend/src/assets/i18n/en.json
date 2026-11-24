@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "loading...",
-			"NO-ITEMS": "No results found!"
+			"NO-ITEMS": "No results found!",
+			"OPTION-ACTION-HINT": "Press Ctrl+Enter to view details of the highlighted option"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Enter text"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "A field refers to a plan that does not exist in this installation (id: {{id}}). Remove that value.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "A field refers to an asset that does not exist in this installation (id: {{id}}). Remove that value.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "You can’t take an admin role away from yourself.",
-			"LAST-TENANT-ADMIN": "An organisation needs at least one Organisation Admin. Make someone else Organisation Admin first."
+			"LAST-TENANT-ADMIN": "An organisation needs at least one Organisation Admin. Make someone else Organisation Admin first.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "This asset template can’t be deleted because assets use it."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Warning!",
@@ -596,6 +598,8 @@
 			"NEW": "New",
 			"CREATE": "Create",
 			"TEST": "Test",
+			"CLEAR": "Clear",
+			"VIEW-DETAILS": "View details",
 			"BOOLEAN": {
 				"YES": "Yes",
 				"NO": "No"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Connection",
 				"CONNECTION-TENANT": "Where the plugin runs and how the platform signs in to it.",
 				"CONNECTION-INSTALLATION": "This plugin is provided by the installation, which manages its connection. You can still check that it answers.",
+				"BENCHMARKS": "Benchmarks",
+				"BENCHMARKS-HINT": "Which of this evaluator's benchmarks and tests your users can run.",
 				"REMOVE": "Remove plugin",
 				"REMOVE-CONFIRM": "Remove {{name}}? Your users will no longer see it. This also saves any other unsaved changes on this page."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Offer every benchmark and test",
+				"BENCHMARKS": "Benchmarks",
+				"TESTS": "Tests",
+				"NO-BENCHMARKS": "This evaluator offers no benchmarks.",
+				"NO-TESTS": "This evaluator offers no tests.",
+				"UNAVAILABLE": "The benchmarks and tests appear once the evaluator is switched on, saved and responding."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "A new version of the blueprint you used to create this Plan is now available. You can use it by creating new version of the plan.",
 		"PID-FINALIZE-MESSAGE": "You need to finalise the plan before publishing it.",
 		"PID-PUBLISH-MESSAGE": "Publish the plan to a repository to get a DOI.",
+		"PUBLISHING": "Being published to {{repository}} since {{time}}.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Attached File. Log in to preview",
 		"COLLABORATORS": "Collaborators",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Add at least one option",
 			"INPUT-UPLOAD-TYPES": "Pick the allowed file types",
 			"INPUT-INVALID": "An input setting is invalid",
+			"RULE-TARGET-MISSING": "A rule shows a question that no longer exists",
 			"REPEATABLE": "The repeat settings are invalid.",
 			"QUESTIONS-OK": "Every question has a title and at least one input.",
 			"NO-ICON": "No icon set. Authors will see the default one.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Question to show",
 			"PICK-TARGET": "Pick a question",
 			"TARGET-REQUIRED": "Pick the question to show.",
+			"TARGET-MISSING": "The question this rule showed no longer exists. Pick another one.",
 			"QUESTIONS": "Questions",
 			"INPUTS": "Single inputs",
+			"SECTIONS": "Sections",
 			"REMOVE": "Remove rule",
 			"YES": "Yes",
 			"NO": "No",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Add Contact",
 			"SEARCH-CONTACT": "Search Contact",
 			"REMOVE-USER": "Remove User",
+			"ADD-USER": "Add User",
 			"SAVE-AND-CLOSE": "Save & Close",
 			"SAVE-AND-CONTINUE": "Save & Continue",
 			"REVERSE": "Undo Finalisation",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Remove User",
+			"ADD-USER": "Add User",
 			"INVITE": "Invite"
 		},
 		"USERS-REQUIRED": "Required at leat on user",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Default",
 		"DEFAULT-OPTION-WITH-VALUE": "Default ({{value}})",
 		"DEFAULT-VALUE-HINT": "Default: {{value}}",
+		"SHOW-VALUE": "Show {{field}}",
+		"HIDE-VALUE": "Hide {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Plan Docx Template",

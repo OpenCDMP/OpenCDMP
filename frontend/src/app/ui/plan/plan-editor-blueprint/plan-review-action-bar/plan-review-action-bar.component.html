@@ -289,6 +289,9 @@
 <li class="plan-review-panel__row"
                
                 (click)="scrollToRow(row)"
+                [attr.tabindex]="row.anchorElementId ? 0 : null"
+                (keydown.enter)="scrollToRow(row, true)"
+                (keydown.space)="$event.preventDefault(); scrollToRow(row, true)"
                 [class.is-clickable]="row.anchorElementId">
                 <div class="plan-review-panel__row-label">
                     @if (row.ordinal) {

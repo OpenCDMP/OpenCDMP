@@ -1,7 +1,7 @@
 <div class="main-content dashboard-main-container">
   @if (isAuthenticated()) {
     <div class="container-fluid p-0">
-      <div class="wrapper row w-100">
+      <div class="wrapper row">
         <section class="col-12 col-xl-9" [attr.aria-label]="'SIDE-BAR.DASHBOARD' | translate">
           @if (hasPlans()) {
             <div>
@@ -228,6 +228,7 @@
         </div>
       </mat-card-content>
     </mat-card>
+    <span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span>
   </a>
 </ng-template>
 <!-- <app-top-plan-blueprints-component></app-top-plan-blueprints-component> -->

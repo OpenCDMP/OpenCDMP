@@ -135,6 +135,20 @@
 				}
 			</section>
 		</mat-tab>
+
+		@if (e.kind.slug === 'evaluator') {
+			<mat-tab [label]="'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.BENCHMARKS' | translate">
+				<section class="tc-card tc-plugin__panel" aria-labelledby="tc-plugin-benchmarks-h">
+					<div class="tc-card__head">
+						<div>
+							<h2 id="tc-plugin-benchmarks-h">{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.BENCHMARKS' | translate }}</h2>
+							<p>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.BENCHMARKS-HINT' | translate }}</p>
+						</div>
+					</div>
+					<app-tc-evaluator-restrictions [evaluatorId]="e.id" [configuration]="evaluatorConfiguration()" [restriction]="restriction()" [readOnly]="readOnly()" (restrictionChange)="sources.setRestriction(e.id, $event)" />
+				</section>
+			</mat-tab>
+		}
 	</mat-tab-group>
 
 	<app-tc-save-bar [dirtyCount]="section.dirtyCount()" [saving]="section.saving()" [canSave]="section.canEdit" (save)="section.saveAll()" (discard)="section.discardAll()" />

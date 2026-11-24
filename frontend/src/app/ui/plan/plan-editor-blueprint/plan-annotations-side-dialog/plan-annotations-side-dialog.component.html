@@ -25,7 +25,7 @@
         <div [class.d-none]="selectedArea" class="pb-3">
             @for(item of annotationsByAnchor(); track item.anchor; let index = $index){
                 <div class="anchor-header d-flex">
-                    <div class="anchor-name" role="button" (click)="navigateToItem(item)">{{item.label || ('ANNOTATION-DIALOG.GENERAL-COMMENTS' | translate)}}</div>
+                    <div class="anchor-name" role="button" tabindex="0" (click)="navigateToItem(item)" (keydown.enter)="navigateToItem(item)" (keydown.space)="$event.preventDefault(); navigateToItem(item)">{{item.label || ('ANNOTATION-DIALOG.GENERAL-COMMENTS' | translate)}}</div>
                     <div class="anchor-comments">{{item.annotations.length}} {{'ANNOTATION-DIALOG.TITLE' | translate | lowercase}}</div>
                 </div>
                 @let canAnnotateArea = canAnnotate | invokeMemoized :item.anchor :item.entityId :item.entityType;

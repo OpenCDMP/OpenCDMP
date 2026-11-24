@@ -12,7 +12,7 @@
                     <span 
                         role="button"
                         [ngClass]="'active-user-' + index"
-                        (click)="navigateToPosition(userInfo)" 
+                        tabindex="0" (click)="navigateToPosition(userInfo)" (keydown.enter)="navigateToPosition(userInfo)" (keydown.space)="$event.preventDefault(); navigateToPosition(userInfo)"
                         [attr.aria-label]="'PLAN-EDITOR.ACTIONS.GO-TO-USER-POSITION' | translate"
                     >
                         <ng-container *ngTemplateOutlet="userLogoTemplate; context: {userInfo}"></ng-container>

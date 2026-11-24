@@ -108,7 +108,7 @@
         </div> -->
         @if (plan.otherPlanVersions?.length > 1 && plan.otherPlanVersions[plan.otherPlanVersions.length - 1].version != plan.version) {
           <div class="alert alert-warning mb-0 mt-3">
-            {{ 'PLAN-OVERVIEW.VERSION-NOTICE-PART1' | translate }} <a class="link"  style="cursor:pointer;" (click)="versionChanged(plan.otherPlanVersions[plan.otherPlanVersions.length -1].id)">{{ 'PLAN-OVERVIEW.VERSION-NOTICE-LINK' | translate }}</a> {{ 'PLAN-OVERVIEW.VERSION-NOTICE-PART2' | translate }}
+            {{ 'PLAN-OVERVIEW.VERSION-NOTICE-PART1' | translate }} <a class="link" [routerLink]="isPublicView ? routerUtils.generateUrl(['/explore-plans/overview/public/', plan.otherPlanVersions[plan.otherPlanVersions.length - 1].id]) : routerUtils.generateUrl(['/plans/overview/', plan.otherPlanVersions[plan.otherPlanVersions.length - 1].id])">{{ 'PLAN-OVERVIEW.VERSION-NOTICE-LINK' | translate }}</a> {{ 'PLAN-OVERVIEW.VERSION-NOTICE-PART2' | translate }}
           </div>
         }
         @if (canViewBlueprintVersionMessage()) {
@@ -219,6 +219,11 @@
                             }
                         </b></div>
                     </div>
+                    @for (pending of pendingDeposits; track pending.id) {
+                        <div class="pid-finalize-message">
+                            {{ 'PLAN-OVERVIEW.PUBLISHING' | translate: { repository: repositoryLabel(pending.repositoryId), time: (pending.createdAt | date: 'shortTime') } }}
+                        </div>
+                    }
                     @if(canShowPidFinalizeMessage()){
                         <div class="pid-finalize-message">
                             {{ (canDepositPlan() ? 'PLAN-OVERVIEW.PID-PUBLISH-MESSAGE' : 'PLAN-OVERVIEW.PID-FINALIZE-MESSAGE') | translate }}
@@ -468,7 +473,7 @@
 <ng-template #entityDoiTemplate let-entityDoi="entityDoi">
     @let href = createDoiLink(entityDoi);
     @if(href){
-        <a (click)="$event.stopPropagation()" [href]="createDoiLink(entityDoi)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'PLAN-OVERVIEW.ACTIONS.VISIT-WEBSITE' | translate">
+        <a (click)="$event.stopPropagation()" [href]="createDoiLink(entityDoi)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="('PLAN-OVERVIEW.ACTIONS.VISIT-WEBSITE' | translate) + ' (' + ('ALT-TEXT.OPENS-IN-NEW-TAB' | translate) + ')'">
             {{ entityDoi.doi }}
         </a>
     }@else {

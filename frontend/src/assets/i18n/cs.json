@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "načítání...",
-			"NO-ITEMS": "Nebyly nalezeny žádné výsledky!"
+			"NO-ITEMS": "Nebyly nalezeny žádné výsledky!",
+			"OPTION-ACTION-HINT": "Stisknutím Ctrl+Enter zobrazíte podrobnosti zvýrazněné možnosti"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Zadejte text"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Pole odkazuje na plán, který v této instalaci neexistuje (id: {{id}}). Odstraňte tuto hodnotu.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Pole odkazuje na zdroj, který v této instalaci neexistuje (id: {{id}}). Odstraňte tuto hodnotu.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Roli správce si nemůžete odebrat sami.",
-			"LAST-TENANT-ADMIN": "Organizace potřebuje alespoň jednoho správce organizace. Nejprve udělejte správcem organizace někoho jiného."
+			"LAST-TENANT-ADMIN": "Organizace potřebuje alespoň jednoho správce organizace. Nejprve udělejte správcem organizace někoho jiného.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Tuto šablonu zdroje nelze smazat, protože ji používají zdroje."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Upozornění!",
@@ -596,6 +598,8 @@
 			"NEW": "Nový",
 			"CREATE": "Vytvořit",
 			"TEST": "Otestovat",
+			"CLEAR": "Vymazat",
+			"VIEW-DETAILS": "Zobrazit podrobnosti",
 			"BOOLEAN": {
 				"YES": "Ano",
 				"NO": "Ne"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Připojení",
 				"CONNECTION-TENANT": "Kde plugin běží a jak se k němu platforma přihlašuje.",
 				"CONNECTION-INSTALLATION": "Tento plugin poskytuje instalace, která spravuje jeho připojení. Přesto můžete ověřit, že odpovídá.",
+				"BENCHMARKS": "Benchmarky",
+				"BENCHMARKS-HINT": "Které benchmarky a testy tohoto hodnotitele mohou vaši uživatelé spouštět.",
 				"REMOVE": "Odebrat plugin",
 				"REMOVE-CONFIRM": "Odebrat {{name}}? Vaši uživatelé ho už neuvidí. Tím se uloží i všechny ostatní neuložené změny na této stránce."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Nabízet všechny benchmarky a testy",
+				"BENCHMARKS": "Benchmarky",
+				"TESTS": "Testy",
+				"NO-BENCHMARKS": "Tento hodnotitel nenabízí žádné benchmarky.",
+				"NO-TESTS": "Tento hodnotitel nenabízí žádné testy.",
+				"UNAVAILABLE": "Benchmarky a testy se zobrazí, jakmile bude hodnotitel zapnutý, uložený a bude odpovídat."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Je k dispozici nová verze blueprintu, který jste použili k vytvoření tohoto Plánu. Můžete ji použít vytvořením nové verze plánu.",
 		"PID-FINALIZE-MESSAGE": "Před uložením plánu jej musíte finalizovat.",
 		"PID-PUBLISH-MESSAGE": "Publikujte plán v repozitáři a získejte DOI.",
+		"PUBLISHING": "Publikuje se do {{repository}} od {{time}}.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Připojený soubor. Pro náhled se přihlaste",
 		"COLLABORATORS": "Spolupracovníci",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Přidejte alespoň jednu možnost",
 			"INPUT-UPLOAD-TYPES": "Zvolte povolené typy souborů",
 			"INPUT-INVALID": "Nastavení vstupu je neplatné",
+			"RULE-TARGET-MISSING": "Pravidlo zobrazuje otázku, která už neexistuje",
 			"REPEATABLE": "Nastavení opakování je neplatné.",
 			"QUESTIONS-OK": "Každá otázka má název a alespoň jeden vstup.",
 			"NO-ICON": "Ikona není nastavena. Autoři uvidí výchozí.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Otázka k zobrazení",
 			"PICK-TARGET": "Vyberte otázku",
 			"TARGET-REQUIRED": "Vyberte otázku, která se má zobrazit.",
+			"TARGET-MISSING": "Otázka, kterou toto pravidlo zobrazovalo, už neexistuje. Vyberte jinou.",
 			"QUESTIONS": "Otázky",
 			"INPUTS": "Jednotlivé vstupy",
+			"SECTIONS": "Sekce",
 			"REMOVE": "Odebrat pravidlo",
 			"YES": "Ano",
 			"NO": "Ne",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Přidat kontakt",
 			"SEARCH-CONTACT": "Vyhledat kontakt",
 			"REMOVE-USER": "Odebrat uživatele",
+			"ADD-USER": "Přidat uživatele",
 			"SAVE-AND-CLOSE": "Uložit a zavřít",
 			"SAVE-AND-CONTINUE": "Uložit a pokračovat",
 			"REVERSE": "Vrátit finalizaci",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Odebrat uživatele",
+			"ADD-USER": "Přidat uživatele",
 			"INVITE": "Pozvat"
 		},
 		"USERS-REQUIRED": "Vyžadován alespoň jeden uživatel",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Výchozí",
 		"DEFAULT-OPTION-WITH-VALUE": "Výchozí ({{value}})",
 		"DEFAULT-VALUE-HINT": "Výchozí: {{value}}",
+		"SHOW-VALUE": "Zobrazit {{field}}",
+		"HIDE-VALUE": "Skrýt {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Šablona Docx pro plán",

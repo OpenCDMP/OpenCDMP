@@ -53,8 +53,8 @@
       }
       <div class="row">
         <div class="col-12">
-          <button mat-icon-button (click)="addUser()">
-            <mat-icon>add</mat-icon>
+          <button mat-icon-button (click)="addUser()" [attr.aria-label]="'USER-INVITE-TO-TENANT-DIALOG.ACTIONS.ADD-USER' | translate">
+            <mat-icon aria-hidden="true">add</mat-icon>
           </button>
         </div>
       </div>

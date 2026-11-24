@@ -1847,14 +1847,9 @@ public class PlanServiceImpl implements PlanService {
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
             oldPlanStatusEntity = this.tenantEntityManagerFactory.getInstance().find(PlanStatusEntity.class, data.getStatusId(), true);
             if (oldPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (oldPlanStatusEntity.getInternalStatus() != null && oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyValidationException(this.errors.getPlanIsFinalized().getCode(), this.errors.getPlanIsFinalized().getMessage());
             newPlanStatusEntity = this.tenantEntityManagerFactory.getInstance().find(PlanStatusEntity.class, model.getStatusId(), true);
             if (newPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-            if (newPlanStatusEntity.getInternalStatus() != null && newPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized) && oldPlanStatusEntity.getInternalStatus() != null && oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) {
-                this.kpiService.sendIndicatorPointPlanPerBlueprintEntry(KpiDirectionType.Decrease,data.getId());
-                this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(model.getId())), Permission.FinalizePlan);
-                data.setStatusId(model.getStatusId());
-                data.setFinalizedAt(Instant.now());
-            }
         } else {
             data = new PlanEntity();
             data.setId(UUID.randomUUID());
@@ -3466,6 +3461,8 @@ public class PlanServiceImpl implements PlanService {
     //region Update description templates
 
     public Plan updatePlanDescriptionTemplate(UpdatePlanDescriptionTemplate model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, IOException {
+
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(model.getId())), Permission.EditPlan);
 
         PlanEntity data = this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, model.getId());
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));

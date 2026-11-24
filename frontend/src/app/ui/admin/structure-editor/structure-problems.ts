@@ -5,6 +5,7 @@ import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { ToCEntry, ToCEntryType } from '@app/ui/admin/description-template/editor/table-of-contents/description-template-table-of-contents-entry';
 import { TranslateService } from '@ngx-translate/core';
 import { BlueprintStructureHelper } from './structure.helper';
+import { ruleTargetIds } from './input-kinds';
 
 export type EditorTab = 'details' | 'structure' | 'review';
 
@@ -48,6 +49,7 @@ function compute(params: { sections: UntypedFormArray, entries: ToCEntry[], requ
 	if (backendSections) problems.push({ id: 'sections-be', severity: 'blocker', blocksSave: true, tab: 'structure', where: structure, message: backendSections.message });
 
 	// ---- sections & questions
+	const knownTargets = ruleTargetIds(entries);
 	let questionsWithoutInput = 0;
 	const visit = (entry: ToCEntry, parentSection: ToCEntry) => {
 		const where = `${structure} › ${entry.numbering} ${entry.label || t(entry.type === ToCEntryType.Section ? 'PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' : 'PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION')}`;
@@ -77,11 +79,13 @@ function compute(params: { sections: UntypedFormArray, entries: ToCEntry[], requ
 			else if ((type === FieldType.SELECT || type === FieldType.RADIO_BOX) && data.get('options')?.invalid) problems.push({ ...at, id: `opts-${id}`, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-OPTIONS') + n });
 			else if (type === FieldType.UPLOAD && data.get('types')?.invalid) problems.push({ ...at, id: `upl-${id}`, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-UPLOAD-TYPES') + n });
 			else if (field.invalid) problems.push({ ...at, id: `inv-${id}`, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-INVALID') + n });
+			const rules = (field.get('visibilityRules') as UntypedFormArray)?.controls ?? [];
+			if (rules.some(r => r.get('target')?.value && !knownTargets.has(r.get('target').value))) problems.push({ ...at, id: `rule-${id}`, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.RULE-TARGET-MISSING') + n });
 		});
 		if (form.get('hasMultiplicity')?.value && form.get('multiplicity')?.invalid) problems.push({ ...at, id: `mult-${entry.id}`, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.REPEATABLE') });
 	};
 	entries?.forEach(e => visit(e, null));
-	if (entries?.length && !questionsWithoutInput && !problems.some(p => p.id.startsWith('qtitle-') || p.id.startsWith('type-') || p.id.startsWith('inv-'))) {
+	if (entries?.length && !questionsWithoutInput && !problems.some(p => p.id.startsWith('qtitle-') || p.id.startsWith('type-') || p.id.startsWith('inv-') || p.id.startsWith('rule-'))) {
 		problems.push({ id: 'questions-ok', severity: 'ok', blocksSave: false, tab: 'structure', where: structure, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.QUESTIONS-OK') });
 	}
 	return problems;

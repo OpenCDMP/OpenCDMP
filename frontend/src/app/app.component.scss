@@ -25,6 +25,7 @@
     flex: 1;
     overflow: hidden;
     display: flex;
+    position: relative;
 }
 #main-page {
     flex: 1;
@@ -46,12 +47,23 @@
     &.closed {
         width: 80px;
     }
-}
-
-@media (max-width: 500px) {
-    .sidenav:not(.closed) {
-        width: 100% !important;
+    &.overlay {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: min(260px, 100%);
+        z-index: 1000;
+        &.closed {
+            display: none;
+        }
     }
+}
+.sidenav-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 999;
+    background: #00000014;
 }
 
 .sidenav-content {

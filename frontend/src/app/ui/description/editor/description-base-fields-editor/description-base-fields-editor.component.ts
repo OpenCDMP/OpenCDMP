@@ -16,13 +16,14 @@ import { MatFormField, MatError } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { RichTextEditorComponent } from '../../../../library/rich-text-editor/rich-text-editor.component';
 import { TagsComponent } from '../../../tag/tags-field/tags-field.component';
+import { FormFocusDirective } from '@common/forms/form-focus.directive';
 
 @Component({
     selector: 'app-description-base-fields-editor-component',
     templateUrl: 'description-base-fields-editor.component.html',
     styleUrls: ['./description-base-fields-editor.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [FormsModule, ReactiveFormsModule, FieldChangeBadgeComponent, MatFormField, MatInput, MatError, RichTextEditorComponent, TagsComponent, TranslatePipe]
+    imports: [FormsModule, ReactiveFormsModule, FieldChangeBadgeComponent, MatFormField, MatInput, MatError, RichTextEditorComponent, TagsComponent, TranslatePipe, FormFocusDirective]
 })
 export class DescriptionBaseFieldsEditorComponent extends BaseComponent {
     fields = input<SystemFieldType[]>([SystemFieldType.PlanDescriptionTitle, SystemFieldType.PlanDescriptionDescription, SystemFieldType.PlanDescriptionTag])

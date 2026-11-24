@@ -1,6 +1,6 @@
 import { BaseEditorModel } from "@common/base/base-form-editor-model";
 import { TenantConfigurationType } from "@app/core/common/enum/tenant-configuration-type";
-import { EvaluatorSource, EvaluatorSourcePersist, EvaluatorTenantConfiguration, EvaluatorTenantConfigurationPersist, TenantConfiguration, TenantConfigurationPersist } from "@app/core/model/tenant-configuaration/tenant-configuration";
+import { EvaluatorRestriction, EvaluatorSource, EvaluatorSourcePersist, EvaluatorTenantConfiguration, EvaluatorTenantConfigurationPersist, TenantConfiguration, TenantConfigurationPersist } from "@app/core/model/tenant-configuaration/tenant-configuration";
 import { ValidationErrorModel } from "@common/forms/validation/error-model/validation-error-model";
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { Validation, ValidationContext } from "@common/forms/validation/validation-context";
@@ -70,6 +70,7 @@ export class EvaluatorTenantConfigurationEditorModel implements EvaluatorTenantC
     disableSystemSources: boolean = false;
     disabledSourceIds: string[] = [];
     sources: EvaluatorSourceEditorModel[] = [];
+    restrictions: EvaluatorRestriction[] = [];
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -81,6 +82,7 @@ export class EvaluatorTenantConfigurationEditorModel implements EvaluatorTenantC
         if(item){
             this.disableSystemSources = item.disableSystemSources;
             this.disabledSourceIds = item.disabledSourceIds ?? [];
+            this.restrictions = item.restrictions ?? [];
             if(item.sources) { item.sources.map(x => this.sources.push(new EvaluatorSourceEditorModel(this.validationErrorModel).fromModel(x)));}
         }
         return this;
@@ -103,6 +105,7 @@ export class EvaluatorTenantConfigurationEditorModel implements EvaluatorTenantC
         const form: UntypedFormGroup = this.formBuilder.group({
             disableSystemSources: [{value: this.disableSystemSources, disabled: disabled}, context.getValidation('disableSystemSources').validators],
             disabledSourceIds: [{ value: this.disabledSourceIds ?? [], disabled: disabled }],
+            restrictions: [{ value: this.restrictions ?? [], disabled: disabled }],
             sources: this.formBuilder.array(
                 (this.sources ?? []).map(
                     (item, index) => item.buildForm({

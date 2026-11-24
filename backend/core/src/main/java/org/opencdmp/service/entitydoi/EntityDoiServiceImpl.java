@@ -13,6 +13,7 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commons.enums.EntityDoiStatus;
 import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.IsActive;
@@ -110,6 +111,7 @@ public class EntityDoiServiceImpl implements EntityDoiService {
         data.setEntityId(model.getEntityId());
         data.setRepositoryId(model.getRepositoryId());
         data.setDoi(model.getDoi());
+        data.setStatus(EntityDoiStatus.Published);
         if (metadata != null) data.setMetadata(this.jsonHandlingService.toJsonSafe(metadata));
         data.setUpdatedAt(Instant.now());
         if (isUpdate)

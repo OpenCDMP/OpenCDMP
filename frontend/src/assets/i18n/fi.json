@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "ladataan...",
-			"NO-ITEMS": "Tuloksia ei löytynyt!"
+			"NO-ITEMS": "Tuloksia ei löytynyt!",
+			"OPTION-ACTION-HINT": "Näytä korostetun vaihtoehdon tiedot painamalla Ctrl+Enter"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Kirjoita tekstiä"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Kenttä viittaa suunnitelmaan, jota ei ole tässä asennuksessa (id: {{id}}). Poista tämä arvo.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Kenttä viittaa aineistoon, jota ei ole tässä asennuksessa (id: {{id}}). Poista tämä arvo.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Et voi poistaa ylläpitäjän roolia itseltäsi.",
-			"LAST-TENANT-ADMIN": "Organisaatiolla on oltava vähintään yksi organisaation ylläpitäjä. Tee ensin joku muu organisaation ylläpitäjäksi."
+			"LAST-TENANT-ADMIN": "Organisaatiolla on oltava vähintään yksi organisaation ylläpitäjä. Tee ensin joku muu organisaation ylläpitäjäksi.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Tätä aineistopohjaa ei voi poistaa, koska aineistot käyttävät sitä."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Varoitus!",
@@ -596,6 +598,8 @@
 			"NEW": "Uusi",
 			"CREATE": "Luo",
 			"TEST": "Testaa",
+			"CLEAR": "Tyhjennä",
+			"VIEW-DETAILS": "Näytä tiedot",
 			"BOOLEAN": {
 				"YES": "Kyllä",
 				"NO": "Ei"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Yhteys",
 				"CONNECTION-TENANT": "Missä liitännäinen toimii ja miten alusta kirjautuu siihen.",
 				"CONNECTION-INSTALLATION": "Tämän liitännäisen tarjoaa asennus, joka hallitsee sen yhteyttä. Voit silti tarkistaa, että se vastaa.",
+				"BENCHMARKS": "Vertailuarvot",
+				"BENCHMARKS-HINT": "Mitä tämän arvioijan vertailuarvoja ja testejä käyttäjäsi voivat suorittaa.",
 				"REMOVE": "Poista liitännäinen",
 				"REMOVE-CONFIRM": "Poistetaanko {{name}}? Käyttäjäsi eivät enää näe sitä. Tämä tallentaa myös muut tämän sivun tallentamattomat muutokset."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Tarjoa kaikki vertailuarvot ja testit",
+				"BENCHMARKS": "Vertailuarvot",
+				"TESTS": "Testit",
+				"NO-BENCHMARKS": "Tämä arvioija ei tarjoa vertailuarvoja.",
+				"NO-TESTS": "Tämä arvioija ei tarjoa testejä.",
+				"UNAVAILABLE": "Vertailuarvot ja testit tulevat näkyviin, kun arvioija on otettu käyttöön, tallennettu ja vastaa."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Uusi versio Blueprintistä, jonka avulla loit tämän suunnitelman, on nyt saatavilla. Voit käyttää sitä luomalla suunnitelmasta uuden version.",
 		"PID-FINALIZE-MESSAGE": "Sinun on viimeisteltävä suunnitelma ennen sen tallentamista.",
 		"PID-PUBLISH-MESSAGE": "Julkaise suunnitelma tietovarastoon saadaksesi DOI:n.",
+		"PUBLISHING": "Julkaistaan kohteeseen {{repository}} {{time}} alkaen.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Liitetiedosto. Kirjaudu sisään esikatsellaksesi",
 		"COLLABORATORS": "Yhteistyökumppanit",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Lisää vähintään yksi vaihtoehto",
 			"INPUT-UPLOAD-TYPES": "Valitse sallitut tiedostotyypit",
 			"INPUT-INVALID": "Syötteen asetus on virheellinen",
+			"RULE-TARGET-MISSING": "Sääntö näyttää kysymyksen, jota ei enää ole",
 			"REPEATABLE": "Toistoasetukset ovat virheelliset.",
 			"QUESTIONS-OK": "Jokaisella kysymyksellä on otsikko ja vähintään yksi syöte.",
 			"NO-ICON": "Kuvaketta ei ole asetettu. Kirjoittajat näkevät oletuskuvakkeen.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Näytettävä kysymys",
 			"PICK-TARGET": "Valitse kysymys",
 			"TARGET-REQUIRED": "Valitse näytettävä kysymys.",
+			"TARGET-MISSING": "Kysymystä, jonka tämä sääntö näytti, ei enää ole. Valitse toinen.",
 			"QUESTIONS": "Kysymykset",
 			"INPUTS": "Yksittäiset syötteet",
+			"SECTIONS": "Osiot",
 			"REMOVE": "Poista sääntö",
 			"YES": "Kyllä",
 			"NO": "Ei",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Lisää yhteyshenkilö",
 			"SEARCH-CONTACT": "Hae yhteyshenkilöä",
 			"REMOVE-USER": "Poista käyttäjä",
+			"ADD-USER": "Lisää käyttäjä",
 			"SAVE-AND-CLOSE": "Tallenna ja sulje",
 			"SAVE-AND-CONTINUE": "Tallenna ja jatka",
 			"REVERSE": "Peruuta viimeistely",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Poista käyttäjä",
+			"ADD-USER": "Lisää käyttäjä",
 			"INVITE": "Kutsu"
 		},
 		"USERS-REQUIRED": "Vähintään yksi käyttäjä vaaditaan",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Oletus",
 		"DEFAULT-OPTION-WITH-VALUE": "Oletus ({{value}})",
 		"DEFAULT-VALUE-HINT": "Oletus: {{value}}",
+		"SHOW-VALUE": "Näytä {{field}}",
+		"HIDE-VALUE": "Piilota {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Suunnitelman Docx-pohja",

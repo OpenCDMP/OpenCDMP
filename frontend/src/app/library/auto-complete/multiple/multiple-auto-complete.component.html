@@ -30,7 +30,7 @@
 								
 }
 								@if (popupSelectedItemActionIcon) {
-<button mat-icon-button class="popup-icon always-enabled" (click)="_selectedItemOptionActionClicked(getSelectedItem(value), $event)" [disabled]="isPopupSelectedItemActionIconDisabled">
+<button mat-icon-button class="popup-icon always-enabled" (click)="_selectedItemOptionActionClicked(getSelectedItem(value), $event)" [disabled]="isPopupSelectedItemActionIconDisabled" [attr.aria-label]="'COMMONS.ACTIONS.VIEW-DETAILS' | translate">
 									<mat-icon aria-hidden="true">{{popupSelectedItemActionIcon}}</mat-icon>
 								</button>
 }
@@ -47,8 +47,11 @@
 				</mat-chip-grid>
 			</div>
 			<div class="col-12">
-				<input matInput #autocompleteInput [id]="id" [name]="id" [attr.aria-describedby]="describedBy || null" #autocompleteTrigger="matAutocompleteTrigger" autocomplete="off" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" [required]="required" (focus)="_onInputFocus()" (blur)="onBlur($event)" [matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matChipInputAddOnBlur]="autoSelectFirstOptionOnBlur">
+				<input matInput #autocompleteInput [id]="id" [name]="id" [attr.aria-describedby]="_inputDescribedBy" (keydown.control.enter)="_optionActionKeydown($event)" #autocompleteTrigger="matAutocompleteTrigger" autocomplete="off" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" [required]="required" (focus)="_onInputFocus()" (blur)="onBlur($event)" [matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matChipInputAddOnBlur]="autoSelectFirstOptionOnBlur">
 			</div>
+			@if (_showsOptionActionIcon) {
+				<span [id]="id + '-option-action-hint'" class="cdk-visually-hidden">{{'GENERAL.AUTO-CONPLETE.OPTION-ACTION-HINT' | translate}}</span>
+			}
 			<mat-autocomplete #autocomplete="matAutocomplete" [displayWith]="_displayFn.bind(this)" (optionSelected)="_optionSelected($event)" [classList]="['myClass']">
 				<div>
                     @if(_groupedItems){
@@ -88,7 +91,7 @@
 									</div>
 									<div class="col-auto align-self-center">
 										@if (popupItemActionIcon) {
-<span class="option-icon" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
+<span class="option-icon" aria-hidden="true" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
 }
 									</div>
 								</div>
@@ -127,7 +130,7 @@
 										</div>
 										<div class="col-auto align-self-center">
 											@if (popupItemActionIcon) {
-<span class="option-icon" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
+<span class="option-icon" aria-hidden="true" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
 }
 										</div>
 									</div>

@@ -364,7 +364,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
                 data.setRole(user.getRole());
                 this.tenantEntityManagerFactory.getInstance().persist(data);
                 if (!this.userScopeFactory.getInstance().getUserId().equals(user.getUserId())) {
-                    PlanBlueprintEntity planBlueprint = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().isActive(IsActive.Active).ids(data.getPlanBlueprintId()).first();
+                    // tracked on purpose: this is the caller's own managed entity, and disableTracking would detach it, losing the version status set after this
+                    PlanBlueprintEntity planBlueprint = this.queryFactory.query(PlanBlueprintQuery.class).isActive(IsActive.Active).ids(data.getPlanBlueprintId()).first();
                     if (planBlueprint == null) {
                         throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getPlanBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
                     }
@@ -689,7 +690,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setId(UUID.randomUUID());
         data.setLabel(model.getLabel());
         data.setDescription(model.getDescription());
-        data.setStatus(model.getStatus());
+        // a new version always starts as a draft; finalizing it is a separate save
+        data.setStatus(PlanBlueprintStatus.Draft);
 
         if (!this.conventionService.isListNullOrEmpty(model.getDefinition().getPluginConfigurations())) {
             DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(oldPlanBlueprintEntity.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, oldPlanBlueprintEntity.getDefinition());

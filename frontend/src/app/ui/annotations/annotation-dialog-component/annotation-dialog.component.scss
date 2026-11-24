@@ -148,7 +148,6 @@ $mat-card-header-size: 40px !default;
 	box-sizing: border-box;
 
 	&:focus {
-		outline: none;
 		border-color: var(--mat-sys-primary);
 	}
 }

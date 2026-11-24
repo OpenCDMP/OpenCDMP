@@ -26,7 +26,7 @@ import { MatIcon } from '@angular/material/icon';
 import { FileUploadComponent } from '../../library/file-uploader/file-uploader.component';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatSelect, MatOption } from '@angular/material/select';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { NgxColorsModule } from 'ngx-colors';
 
 
@@ -35,7 +35,7 @@ import { NgxColorsModule } from 'ngx-colors';
     templateUrl: 'plugin-editor.component.html',
     styleUrls: ['./plugin-editor.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatListSubheaderCssMatStyler, MatFormField, MatLabel, ReactiveAsteriskDirective, MatInput, FormsModule, ReactiveFormsModule, MatIcon, MatSuffix, MatHint, MatError, FileUploadComponent, MatSlideToggle, MatSelect, MatOption, MatButton, NgxColorsModule, TranslatePipe]
+    imports: [MatListSubheaderCssMatStyler, MatFormField, MatLabel, ReactiveAsteriskDirective, MatInput, FormsModule, ReactiveFormsModule, MatIcon, MatSuffix, MatHint, MatError, FileUploadComponent, MatSlideToggle, MatSelect, MatOption, MatButton, MatIconButton, NgxColorsModule, TranslatePipe]
 })
 export class PluginEditorComponent extends BaseComponent {
 

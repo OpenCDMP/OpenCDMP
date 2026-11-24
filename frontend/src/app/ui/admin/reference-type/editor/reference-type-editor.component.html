@@ -57,7 +57,7 @@
 		</nav>
 	</header>
 
-	<main class="rt2-main">
+	<div class="rt2-main">
 		<!-- ============================================================ fields -->
 		@if (tab === 'fields') {
 			<div class="rt2-split">
@@ -301,6 +301,6 @@
 		@if (tab === 'entries' && !isNew) {
 			<app-reference-entries [typeId]="editorModel.id" />
 		}
-	</main>
+	</div>
 </div>
 }

@@ -39,7 +39,7 @@
     </div>
   }
   @if (groupedBasicInfo()?.length > pageSize()) {
-    <div class="link-color d-flex justify-content-center show-more" role="button" (click)="toggleShowMore()">
+    <div class="link-color d-flex justify-content-center show-more" role="button" tabindex="0" [attr.aria-expanded]="showMore()" (click)="toggleShowMore()" (keydown.enter)="toggleShowMore()" (keydown.space)="$event.preventDefault(); toggleShowMore()">
       {{(!showMore() ? 'GENERAL.ACTIONS.SHOW-MORE' : 'GENERAL.ACTIONS.SHOW-LESS') | translate}}
     </div>
   }

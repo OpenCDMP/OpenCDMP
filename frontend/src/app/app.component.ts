@@ -209,6 +209,12 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 		return this.authentication.currentAccountIsAuthenticated();
 	}
 
+	closeOverlaySidenav(): void {
+		if (!this.sidenavService.isOverlay() || !this.sidenavService.isOpen()) return;
+		this.sidenavService.setStatus(false);
+		document.getElementById('sidenav-toggle')?.focus();
+	}
+
 	private openTermsAcceptanceDialog(content: string): void {
 		const dialogRef = this.dialog.open(TermsAcceptanceDialogComponent, {
 			disableClose: true,

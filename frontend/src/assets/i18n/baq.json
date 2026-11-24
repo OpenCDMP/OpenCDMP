@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "kargatzen...",
-			"NO-ITEMS": "Ez da emaitzarik aurkitu!"
+			"NO-ITEMS": "Ez da emaitzarik aurkitu!",
+			"OPTION-ACTION-HINT": "Sakatu Ctrl+Enter nabarmendutako aukeraren xehetasunak ikusteko"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Idatzi testua"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Eremu batek instalazio honetan existitzen ez den plan bati egiten dio erreferentzia (id: {{id}}). Kendu balio hori.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Eremu batek instalazio honetan existitzen ez den baliabide bati egiten dio erreferentzia (id: {{id}}). Kendu balio hori.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Ezin diozu zeure buruari administratzaile-rol bat kendu.",
-			"LAST-TENANT-ADMIN": "Erakunde batek gutxienez erakunde-administratzaile bat behar du. Egin beste norbait erakunde-administratzaile lehenik."
+			"LAST-TENANT-ADMIN": "Erakunde batek gutxienez erakunde-administratzaile bat behar du. Egin beste norbait erakunde-administratzaile lehenik.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Ezin da baliabide-txantiloi hau ezabatu, baliabideek erabiltzen dutelako."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Kontuz!",
@@ -596,6 +598,8 @@
 			"NEW": "Berria",
 			"CREATE": "Sortu",
 			"TEST": "Probatu",
+			"CLEAR": "Garbitu",
+			"VIEW-DETAILS": "Ikusi xehetasunak",
 			"BOOLEAN": {
 				"YES": "Bai",
 				"NO": "Ez"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Konexioa",
 				"CONNECTION-TENANT": "Plugina non exekutatzen den eta plataformak nola hasten duen saioa bertan.",
 				"CONNECTION-INSTALLATION": "Plugin hau instalazioak ematen du, eta hark kudeatzen du konexioa. Hala ere, erantzuten duen egiaztatu dezakezu.",
+				"BENCHMARKS": "Erreferentzia-parametroak",
+				"BENCHMARKS-HINT": "Ebaluatzaile honen zein erreferentzia-parametro eta proba exekuta ditzaketen zure erabiltzaileek.",
 				"REMOVE": "Kendu plugina",
 				"REMOVE-CONFIRM": "{{name}} kendu? Zure erabiltzaileek ez dute gehiago ikusiko. Orri honetako gorde gabeko beste aldaketak ere gordeko dira."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Eskaini erreferentzia-parametro eta proba guztiak",
+				"BENCHMARKS": "Erreferentzia-parametroak",
+				"TESTS": "Probak",
+				"NO-BENCHMARKS": "Ebaluatzaile honek ez du erreferentzia-parametrorik eskaintzen.",
+				"NO-TESTS": "Ebaluatzaile honek ez du probarik eskaintzen.",
+				"UNAVAILABLE": "Erreferentzia-parametroak eta probak ebaluatzailea aktibatu, gorde eta erantzuten duenean agertzen dira."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Plan hau sortzeko erabili zenuen blueprint-aren bertsio berri bat eskuragarri dago. Erabili dezakezu planaren bertsio berri bat sortzean.",
 		"PID-FINALIZE-MESSAGE": "Plana amaitu behar duzu gordailatu aurretik.",
 		"PID-PUBLISH-MESSAGE": "Argitaratu plana biltegi batean DOI bat lortzeko.",
+		"PUBLISHING": "{{repository}} biltegian argitaratzen ari da {{time}}(e)tik.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Erantsitako fitxategia. Saioa hasi aurreikusteko",
 		"COLLABORATORS": "Kolaboratzaileak",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Gehitu aukera bat gutxienez",
 			"INPUT-UPLOAD-TYPES": "Hautatu onartutako fitxategi-motak",
 			"INPUT-INVALID": "Sarreraren ezarpen bat baliogabea da",
+			"RULE-TARGET-MISSING": "Arau batek jada existitzen ez den galdera bat erakusten du",
 			"REPEATABLE": "Errepikapen-ezarpenak baliogabeak dira.",
 			"QUESTIONS-OK": "Galdera bakoitzak izenburua eta sarrera bat du gutxienez.",
 			"NO-ICON": "Ez da ikonorik ezarri. Egileek lehenetsia ikusiko dute.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Erakutsi beharreko galdera",
 			"PICK-TARGET": "Hautatu galdera bat",
 			"TARGET-REQUIRED": "Hautatu erakutsi beharreko galdera.",
+			"TARGET-MISSING": "Arau honek erakusten zuen galdera ez da existitzen. Hautatu beste bat.",
 			"QUESTIONS": "Galderak",
 			"INPUTS": "Sarrera bakarrak",
+			"SECTIONS": "Atalak",
 			"REMOVE": "Kendu araua",
 			"YES": "Bai",
 			"NO": "Ez",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Gehitu kontaktua",
 			"SEARCH-CONTACT": "Bilatu kontaktua",
 			"REMOVE-USER": "Kendu erabiltzailea",
+			"ADD-USER": "Gehitu erabiltzailea",
 			"SAVE-AND-CLOSE": "Gorde eta itxi",
 			"SAVE-AND-CONTINUE": "Gorde eta jarraitu",
 			"REVERSE": "Desegin amaiera",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Kendu erabiltzailea",
+			"ADD-USER": "Gehitu erabiltzailea",
 			"INVITE": "Gonbidatu"
 		},
 		"USERS-REQUIRED": "Gutxienez erabiltzaile bat behar da",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Lehenetsia",
 		"DEFAULT-OPTION-WITH-VALUE": "Lehenetsia ({{value}})",
 		"DEFAULT-VALUE-HINT": "Lehenetsia: {{value}}",
+		"SHOW-VALUE": "Erakutsi {{field}}",
+		"HIDE-VALUE": "Ezkutatu {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Plan Docx Txantiloia",

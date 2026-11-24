@@ -87,7 +87,7 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 		private sanitizer: DomSanitizer,
 		private analyticsService: AnalyticsService,
         private principalService: PrincipalService,
-		private sidenavService: SideNavService
+		protected sidenavService: SideNavService
         // private fontService: FontAccessibilityService,
         // private language: TranslateService
 	) {
@@ -234,7 +234,6 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 		}
 		else {
 			const dialogRef = this.dialog.open(FaqDialogComponent, {
-				disableClose: true,
 				data: {
 					isDialog: true
 				},

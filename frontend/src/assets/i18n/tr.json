@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "yükleniyor...",
-			"NO-ITEMS": "Sonuç bulunamadı!"
+			"NO-ITEMS": "Sonuç bulunamadı!",
+			"OPTION-ACTION-HINT": "Vurgulanan seçeneğin ayrıntılarını görmek için Ctrl+Enter tuşlarına basın"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Metin girin"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Bir alan, bu kurulumda bulunmayan bir plana başvuruyor (id: {{id}}). Bu değeri kaldırın.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Bir alan, bu kurulumda bulunmayan bir varlığa başvuruyor (id: {{id}}). Bu değeri kaldırın.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Bir yönetici rolünü kendinizden alamazsınız.",
-			"LAST-TENANT-ADMIN": "Bir kurumun en az bir kurum yöneticisi olmalıdır. Önce başka birini kurum yöneticisi yapın."
+			"LAST-TENANT-ADMIN": "Bir kurumun en az bir kurum yöneticisi olmalıdır. Önce başka birini kurum yöneticisi yapın.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Bu varlık şablonu, varlıklar tarafından kullanıldığı için silinemez."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Uyarı!",
@@ -596,6 +598,8 @@
 			"NEW": "Yeni",
 			"CREATE": "Oluştur",
 			"TEST": "Test et",
+			"CLEAR": "Temizle",
+			"VIEW-DETAILS": "Ayrıntıları görüntüle",
 			"BOOLEAN": {
 				"YES": "Evet",
 				"NO": "Hayır"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Bağlantı",
 				"CONNECTION-TENANT": "Eklentinin nerede çalıştığı ve platformun ona nasıl oturum açtığı.",
 				"CONNECTION-INSTALLATION": "Bu eklenti, bağlantısını yöneten kurulum tarafından sağlanır. Yine de yanıt verip vermediğini kontrol edebilirsiniz.",
+				"BENCHMARKS": "Kıyaslamalar",
+				"BENCHMARKS-HINT": "Kullanıcılarınızın bu değerlendiricinin hangi kıyaslamalarını ve testlerini çalıştırabileceği.",
 				"REMOVE": "Eklentiyi kaldır",
 				"REMOVE-CONFIRM": "{{name}} kaldırılsın mı? Kullanıcılarınız onu artık görmeyecek. Bu işlem, bu sayfadaki diğer kaydedilmemiş değişiklikleri de kaydeder."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Tüm kıyaslamaları ve testleri sun",
+				"BENCHMARKS": "Kıyaslamalar",
+				"TESTS": "Testler",
+				"NO-BENCHMARKS": "Bu değerlendirici kıyaslama sunmuyor.",
+				"NO-TESTS": "Bu değerlendirici test sunmuyor.",
+				"UNAVAILABLE": "Kıyaslamalar ve testler, değerlendirici açıldığında, kaydedildiğinde ve yanıt verdiğinde görünür."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Bu Planı oluşturmak için kullandığınız blueprint'in yeni bir sürümü artık mevcut. Planın yeni bir sürümünü oluşturarak kullanabilirsiniz.",
 		"PID-FINALIZE-MESSAGE": "Yatırmadan önce planı sonlandırmanız gerekiyor.",
 		"PID-PUBLISH-MESSAGE": "DOI almak için planı bir depoda yayınlayın.",
+		"PUBLISHING": "{{time}} tarihinden beri {{repository}} deposunda yayımlanıyor.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Ekli Dosya. Önizlemek için oturum açın",
 		"COLLABORATORS": "Ortaklar",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "En az bir seçenek ekleyin",
 			"INPUT-UPLOAD-TYPES": "İzin verilen dosya türlerini seçin",
 			"INPUT-INVALID": "Bir girdi ayarı geçersiz",
+			"RULE-TARGET-MISSING": "Bir kural artık var olmayan bir soruyu gösteriyor",
 			"REPEATABLE": "Tekrar ayarları geçersiz.",
 			"QUESTIONS-OK": "Her sorunun bir başlığı ve en az bir girdisi var.",
 			"NO-ICON": "Simge ayarlanmadı. Yazarlar varsayılanı görür.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Gösterilecek soru",
 			"PICK-TARGET": "Bir soru seçin",
 			"TARGET-REQUIRED": "Gösterilecek soruyu seçin.",
+			"TARGET-MISSING": "Bu kuralın gösterdiği soru artık yok. Başka bir soru seçin.",
 			"QUESTIONS": "Sorular",
 			"INPUTS": "Tekil girdiler",
+			"SECTIONS": "Bölümler",
 			"REMOVE": "Kuralı kaldır",
 			"YES": "Evet",
 			"NO": "Hayır",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "İletişim Ekle",
 			"SEARCH-CONTACT": "İletişim Ara",
 			"REMOVE-USER": "Kullanıcıyı Kaldır",
+			"ADD-USER": "Kullanıcı ekle",
 			"SAVE-AND-CLOSE": "Kaydet ve Kapat",
 			"SAVE-AND-CONTINUE": "Kaydet ve Devam Et",
 			"REVERSE": "Sonlandırmayı Geri Al",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Kullanıcıyı Kaldır",
+			"ADD-USER": "Kullanıcı ekle",
 			"INVITE": "Davet Et"
 		},
 		"USERS-REQUIRED": "En az bir kullanıcı gerekli",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Varsayılan",
 		"DEFAULT-OPTION-WITH-VALUE": "Varsayılan ({{value}})",
 		"DEFAULT-VALUE-HINT": "Varsayılan: {{value}}",
+		"SHOW-VALUE": "{{field}} göster",
+		"HIDE-VALUE": "{{field}} gizle",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Plan DOCX Şablonu",

@@ -8,7 +8,7 @@
 	>
 		<span class="usage-section-title">{{ title() }}</span>
 		@if (selected().length) {
-			<span class="usage-section-badge">{{ selected().length }}<span class="visually-hidden"> {{ 'REFERENCE-USAGE-FILTER.SELECTED' | translate }}</span></span>
+			<span class="usage-section-badge">{{ selected().length }}<span class="cdk-visually-hidden"> {{ 'REFERENCE-USAGE-FILTER.SELECTED' | translate }}</span></span>
 		}
 		<mat-icon aria-hidden="true">{{ expanded() ? 'expand_less' : 'expand_more' }}</mat-icon>
 	</button>
@@ -31,7 +31,7 @@
 						>
 							<span class="usage-row-label">
 								@if (group.name) {
-									<span class="visually-hidden">{{ group.name }}: </span>
+									<span class="cdk-visually-hidden">{{ group.name }}: </span>
 								}
 								<span class="usage-row-text">{{ row.reference.label }}</span>
 								@if (row.count != null) {

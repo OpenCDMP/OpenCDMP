@@ -50,6 +50,7 @@
                                         [isChild]="true"
                                         [hideLabel]="hideFieldLabel(field)"
                                         [hideRequiredMarker]="headingCarriesRequiredMarker"
+                                        [showLabel]="fieldSet().fields.length > 1"
                                     ></app-form-field>
                                 </div>
                             }
@@ -124,7 +125,7 @@
                 }
                 <td class="actions">
                     <div class="w-100 d-flex justify-content-center">
-                    <button mat-icon-button type="button" class="deleteBtn btn-sm" (click)="editTableMultiplicityFieldInDialog(j)" [disabled]="fieldSetItemPropertiesControl.disabled">
+                    <button mat-icon-button type="button" class="deleteBtn btn-sm" (click)="editTableMultiplicityFieldInDialog(j)" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.EDIT' | translate">
                         <mat-icon>edit</mat-icon>
                     </button>
                     @if (propertiesFormGroup().get('items').length > 1) {
@@ -175,7 +176,7 @@
                 @if ((visibilityRulesService?.isVisibleMap[fieldSet().id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true)) {
                   <th [class.error-col]="fieldSetItemPropertiesControl.touched && fieldSetItemPropertiesControl.invalid">
                     <div class="w-100 d-flex justify-content-center">
-                      <button mat-icon-button type="button" class="deleteBtn btn-sm" (click)="editTableMultiplicityFieldInDialog(j)" [disabled]="fieldSetItemPropertiesControl.disabled">
+                      <button mat-icon-button type="button" class="deleteBtn btn-sm" (click)="editTableMultiplicityFieldInDialog(j)" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.EDIT' | translate">
                         <mat-icon>edit</mat-icon>
                       </button>
                       @if (propertiesFormGroup().get('items').length > 1) {

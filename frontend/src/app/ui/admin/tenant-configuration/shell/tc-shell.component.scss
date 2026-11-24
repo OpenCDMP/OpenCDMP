@@ -110,9 +110,21 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 
+	// One scrolling row, like the admin listing's scope tabs; wrapped, the group labels landed among other groups' links.
 	.tc-nav {
 		position: static;
 		flex-direction: row;
-		flex-wrap: wrap;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		scrollbar-width: thin;
+	}
+
+	.tc-nav__group {
+		display: none;
+	}
+
+	.tc-nav__item {
+		flex: none;
+		white-space: nowrap;
 	}
 }

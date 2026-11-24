@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "laden...",
-			"NO-ITEMS": "Geen resultaten gevonden!"
+			"NO-ITEMS": "Geen resultaten gevonden!",
+			"OPTION-ACTION-HINT": "Druk op Ctrl+Enter om de details van de gemarkeerde optie te bekijken"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Tekst invoeren"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Een veld verwijst naar een plan dat niet bestaat in deze installatie (id: {{id}}). Verwijder die waarde.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Een veld verwijst naar een hulpbron die niet bestaat in deze installatie (id: {{id}}). Verwijder die waarde.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "U kunt geen beheerdersrol bij uzelf weghalen.",
-			"LAST-TENANT-ADMIN": "Een organisatie heeft minstens één organisatiebeheerder nodig. Maak eerst iemand anders organisatiebeheerder."
+			"LAST-TENANT-ADMIN": "Een organisatie heeft minstens één organisatiebeheerder nodig. Maak eerst iemand anders organisatiebeheerder.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Dit hulpbronsjabloon kan niet worden verwijderd omdat hulpbronnen het gebruiken."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Waarschuwing!",
@@ -596,6 +598,8 @@
 			"NEW": "Nieuw",
 			"CREATE": "Aanmaken",
 			"TEST": "Testen",
+			"CLEAR": "Wissen",
+			"VIEW-DETAILS": "Details bekijken",
 			"BOOLEAN": {
 				"YES": "Ja",
 				"NO": "Nee"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Verbinding",
 				"CONNECTION-TENANT": "Waar de plugin draait en hoe het platform zich erbij aanmeldt.",
 				"CONNECTION-INSTALLATION": "Deze plugin wordt geleverd door de installatie, die de verbinding beheert. U kunt nog steeds controleren of hij reageert.",
+				"BENCHMARKS": "Benchmarks",
+				"BENCHMARKS-HINT": "Welke benchmarks en tests van deze evaluator uw gebruikers kunnen uitvoeren.",
 				"REMOVE": "Plugin verwijderen",
 				"REMOVE-CONFIRM": "{{name}} verwijderen? Uw gebruikers zien de plugin dan niet meer. Hiermee worden ook alle andere niet-opgeslagen wijzigingen op deze pagina opgeslagen."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Alle benchmarks en tests aanbieden",
+				"BENCHMARKS": "Benchmarks",
+				"TESTS": "Tests",
+				"NO-BENCHMARKS": "Deze evaluator biedt geen benchmarks.",
+				"NO-TESTS": "Deze evaluator biedt geen tests.",
+				"UNAVAILABLE": "De benchmarks en tests verschijnen zodra de evaluator is ingeschakeld, opgeslagen en reageert."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Een nieuwe versie van het blueprint dat u gebruikte om dit Plan te maken is nu beschikbaar. U kunt deze gebruiken door een nieuwe versie van het plan te maken.",
 		"PID-FINALIZE-MESSAGE": "U moet het plan afronden voordat u het kunt deponeren.",
 		"PID-PUBLISH-MESSAGE": "Publiceer het plan in een repository om een DOI te krijgen.",
+		"PUBLISHING": "Wordt sinds {{time}} gepubliceerd naar {{repository}}.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Bijgevoegd bestand. Meld u aan om een voorbeeld te bekijken",
 		"COLLABORATORS": "Medewerkers",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Voeg minstens één optie toe",
 			"INPUT-UPLOAD-TYPES": "Kies de toegestane bestandstypen",
 			"INPUT-INVALID": "Een invoerinstelling is ongeldig",
+			"RULE-TARGET-MISSING": "Een regel toont een vraag die niet meer bestaat",
 			"REPEATABLE": "De herhaalinstellingen zijn ongeldig.",
 			"QUESTIONS-OK": "Elke vraag heeft een titel en minstens één invoer.",
 			"NO-ICON": "Geen pictogram ingesteld. Auteurs zien het standaardpictogram.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Te tonen vraag",
 			"PICK-TARGET": "Kies een vraag",
 			"TARGET-REQUIRED": "Kies de vraag die getoond moet worden.",
+			"TARGET-MISSING": "De vraag die deze regel toonde, bestaat niet meer. Kies een andere.",
 			"QUESTIONS": "Vragen",
 			"INPUTS": "Afzonderlijke invoer",
+			"SECTIONS": "Secties",
 			"REMOVE": "Regel verwijderen",
 			"YES": "Ja",
 			"NO": "Nee",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Contact toevoegen",
 			"SEARCH-CONTACT": "Contact zoeken",
 			"REMOVE-USER": "Gebruiker verwijderen",
+			"ADD-USER": "Gebruiker toevoegen",
 			"SAVE-AND-CLOSE": "Opslaan en sluiten",
 			"SAVE-AND-CONTINUE": "Opslaan en doorgaan",
 			"REVERSE": "Afronding ongedaan maken",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Gebruiker verwijderen",
+			"ADD-USER": "Gebruiker toevoegen",
 			"INVITE": "Uitnodigen"
 		},
 		"USERS-REQUIRED": "Ten minste één gebruiker vereist",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Standaard",
 		"DEFAULT-OPTION-WITH-VALUE": "Standaard ({{value}})",
 		"DEFAULT-VALUE-HINT": "Standaard: {{value}}",
+		"SHOW-VALUE": "{{field}} tonen",
+		"HIDE-VALUE": "{{field}} verbergen",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Plan Docx-sjabloon",

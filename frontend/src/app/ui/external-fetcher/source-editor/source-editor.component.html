@@ -393,7 +393,7 @@
 						<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.INSERT' | translate}}</span>
 						@for (code of codes; track code) { <button type="button" class="bp2-pill" [disabled]="!canEdit()" (click)="insertToken('navigationUrl', tok(code), navInput)">{{codeLabel(code) | translate}}</button> }
 					</div>
-					@if (resolvedNavigationUrl(); as url) { <span class="bp2-sub se-wrap">{{'REFERENCE-TYPE-EDITOR.DISPLAY.FOR-RESULT' | translate}} <a [href]="url" target="_blank" rel="noopener noreferrer">{{url}}</a></span> }
+					@if (resolvedNavigationUrl(); as url) { <span class="bp2-sub se-wrap">{{'REFERENCE-TYPE-EDITOR.DISPLAY.FOR-RESULT' | translate}} <a [href]="url" target="_blank" rel="noopener noreferrer">{{url}}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span></a></span> }
 				</div>
 			</div>
 			<div class="se-display">

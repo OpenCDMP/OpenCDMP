@@ -78,6 +78,8 @@ public class EntityDoiBuilder extends BaseBuilder<EntityDoi, EntityDoiEntity> {
                 m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(EntityDoi._isActive)))
                 m.setIsActive(d.getIsActive());
+            if (fields.hasField(this.asIndexer(EntityDoi._status)))
+                m.setStatus(d.getStatus());
             if (!this.isPublic && fields.hasField(this.asIndexer(EntityDoi._hash)))
                 m.setHash(hashValue(d.getUpdatedAt()));
             if (!this.isPublic && fields.hasField(this.asIndexer(EntityDoi._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));

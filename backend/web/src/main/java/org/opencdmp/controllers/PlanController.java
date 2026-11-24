@@ -629,12 +629,12 @@ public class PlanController {
             @RequestParam("label") String label,
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fields
     ) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException, TransformerException {
-        logger.debug(new MapLogEntry("import xml" + Plan.class.getSimpleName()).And("file", file).And("label", label));
+        logger.debug(new MapLogEntry("import xml" + Plan.class.getSimpleName()).And("fileName", file.getOriginalFilename()).And("label", label));
 
         Plan model = this.planService.importXml(file.getBytes(), label, fields);
 
         this.auditService.track(AuditableAction.Plan_Import, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("file", file),
+                new AbstractMap.SimpleEntry<String, Object>("fileName", file.getOriginalFilename()),
                 new AbstractMap.SimpleEntry<String, Object>("fields", fields)
         ));
         return model;

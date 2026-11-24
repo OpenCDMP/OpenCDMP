@@ -166,8 +166,8 @@ export class Bp2SemanticsPickerComponent implements OnInit, OnDestroy {
 
 	onKeydown(event: KeyboardEvent): void {
 		const items = this.flat;
-		if (event.key === 'ArrowDown') { this.active = Math.min(items.length - 1, this.active + 1); this.open = true; event.preventDefault(); }
-		else if (event.key === 'ArrowUp') { this.active = Math.max(0, this.active - 1); event.preventDefault(); }
+		if (event.key === 'ArrowDown') { this.active = Math.min(items.length - 1, this.active + 1); this.open = true; event.preventDefault(); this.scrollActiveIntoView(); }
+		else if (event.key === 'ArrowUp') { this.active = Math.max(0, this.active - 1); event.preventDefault(); this.scrollActiveIntoView(); }
 		else if (event.key === 'Enter') {
 			event.preventDefault();
 			const pick = items[this.active] ?? (this.query.trim() ? { key: this.query.trim(), kind: 'typed' } as Choice : null);
@@ -197,4 +197,8 @@ export class Bp2SemanticsPickerComponent implements OnInit, OnDestroy {
 	}
 
 	indexOf(choice: Choice): number { return this.flat.findIndex(c => c.key === choice.key && c.kind === choice.kind); }
+
+	optionId(index: number): string { return `${this.listId}-opt-${index}`; }
+
+	private scrollActiveIntoView(): void { document.getElementById(this.optionId(this.active))?.scrollIntoView({ block: 'nearest' }); }
 }

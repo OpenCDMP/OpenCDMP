@@ -36,8 +36,10 @@ import org.opencdmp.data.*;
 import org.opencdmp.evaluatorbase.enums.RankType;
 import org.opencdmp.evaluatorbase.interfaces.EvaluatorClient;
 import org.opencdmp.evaluatorbase.interfaces.EvaluatorConfiguration;
+import org.opencdmp.commons.types.tenantconfiguration.EvaluatorRestrictionEntity;
 import org.opencdmp.commons.types.tenantconfiguration.EvaluatorTenantConfigurationEntity;
 import org.opencdmp.convention.ConventionService;
+import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.evaluatorbase.interfaces.SelectionConfiguration;
 import org.opencdmp.evaluatorbase.interfaces.ValueRangeConfiguration;
 import org.opencdmp.evaluatorbase.models.misc.*;
@@ -113,9 +115,10 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     private final EvaluationService evaluationService;
     private final NotificationProperties notificationProperties;
     private final NotifyIntegrationEventHandler eventHandler;
+    private final ErrorThesaurusProperties errors;
 
     @Autowired
-    public EvaluatorServiceImpl(EvaluatorProperties evaluatorProperties, Map<String, EvaluatorClientImpl> clients, TokenExchangeCacheService tokenExchangeCacheService, EvaluatorConfigurationCacheService evaluatorConfigurationCacheService, AuthorizationService authorizationService, QueryFactory queryFactory, BuilderFactory builderFactory, MessageSource messageSource, ConventionService conventionService, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, EvaluatorSourcesCacheService evaluatorSourcesCacheService, AccountingService accountingService, FileTransformerService fileTransformerService, UserScopeFactory userScopeFactory, StorageFileService storageFileService, StorageFileProperties storageFileProperties, ValidatorFactory validatorFactory, AuthorizationContentResolverFactory authorizationContentResolverFactory, EvaluationService evaluationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler) {
+    public EvaluatorServiceImpl(EvaluatorProperties evaluatorProperties, Map<String, EvaluatorClientImpl> clients, TokenExchangeCacheService tokenExchangeCacheService, EvaluatorConfigurationCacheService evaluatorConfigurationCacheService, AuthorizationService authorizationService, QueryFactory queryFactory, BuilderFactory builderFactory, MessageSource messageSource, ConventionService conventionService, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, EvaluatorSourcesCacheService evaluatorSourcesCacheService, AccountingService accountingService, FileTransformerService fileTransformerService, UserScopeFactory userScopeFactory, StorageFileService storageFileService, StorageFileProperties storageFileProperties, ValidatorFactory validatorFactory, AuthorizationContentResolverFactory authorizationContentResolverFactory, EvaluationService evaluationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, ErrorThesaurusProperties errors) {
         this.evaluatorProperties = evaluatorProperties;
         this.clients = clients;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
@@ -140,6 +143,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         this.evaluationService = evaluationService;
         this.notificationProperties = notificationProperties;
         this.eventHandler = eventHandler;
+        this.errors = errors;
     }
     /** Used when a source declares no response size limit, e.g. one a tenant added through the UI. */
     private static final int DEFAULT_MAX_IN_MEMORY_SIZE_IN_BYTES = 6554000;
@@ -193,10 +197,21 @@ public class EvaluatorServiceImpl implements EvaluatorService {
 
 
     private List<EvaluatorSourceEntity> getEvaluatorSources() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return this.getEvaluatorSourcesCacheValue().getSources();
+    }
+
+    private EvaluatorRestrictionEntity getEvaluatorRestriction(String evaluatorId) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        List<EvaluatorRestrictionEntity> restrictions = this.getEvaluatorSourcesCacheValue().getRestrictions();
+        if (restrictions == null) return null;
+        return restrictions.stream().filter(x -> Objects.equals(x.getEvaluatorId(), evaluatorId)).findFirst().orElse(null);
+    }
+
+    private EvaluatorSourcesCacheService.EvaluatorSourceCacheValue getEvaluatorSourcesCacheValue() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : "";
         EvaluatorSourcesCacheService.EvaluatorSourceCacheValue cacheValue = this.evaluatorSourcesCacheService.lookup(this.evaluatorSourcesCacheService.buildKey(tenantCode));
         if (cacheValue == null) {
             List<EvaluatorSourceEntity> evaluatorSourceEntities = new ArrayList<>(this.evaluatorProperties.getSources());
+            List<EvaluatorRestrictionEntity> restrictions = new ArrayList<>();
 
             if (this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant()) {
                 TenantConfigurationQuery tenantConfigurationQuery = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.EvaluatorPlugins);
@@ -210,13 +225,14 @@ public class EvaluatorServiceImpl implements EvaluatorService {
                         if (evaluatorTenantConfigurationEntity.getDisableSystemSources()) evaluatorSourceEntities = new ArrayList<>();
                         evaluatorSourceEntities.addAll(this.buildEvaluatorSourceItems(evaluatorTenantConfigurationEntity.getSources()));
                         if (evaluatorTenantConfigurationEntity.getDisabledSourceIds() != null) evaluatorSourceEntities.removeIf(x -> evaluatorTenantConfigurationEntity.getDisabledSourceIds().contains(x.getEvaluatorId()));
+                        if (evaluatorTenantConfigurationEntity.getRestrictions() != null) restrictions = evaluatorTenantConfigurationEntity.getRestrictions();
                     }
                 }
             }
-            cacheValue = new EvaluatorSourcesCacheService.EvaluatorSourceCacheValue(tenantCode, evaluatorSourceEntities);
+            cacheValue = new EvaluatorSourcesCacheService.EvaluatorSourceCacheValue(tenantCode, evaluatorSourceEntities, restrictions);
             this.evaluatorSourcesCacheService.put(cacheValue);
         }
-        return cacheValue.getSources();
+        return cacheValue;
     }
 
     @EventListener
@@ -261,8 +277,14 @@ public class EvaluatorServiceImpl implements EvaluatorService {
 
     @Override
     public List<org.opencdmp.evaluatorbase.interfaces.EvaluatorConfiguration> getAvailableEvaluators() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return this.getAvailableEvaluators(false);
+    }
+
+    @Override
+    public List<org.opencdmp.evaluatorbase.interfaces.EvaluatorConfiguration> getAvailableEvaluators(boolean unrestricted) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 
         this.authorizationService.authorizeForce(Permission.BrowsePlan, Permission.DeferredAffiliation);
+        if (unrestricted) this.authorizationService.authorizeForce(Permission.EditTenantConfiguration);
         List<org.opencdmp.evaluatorbase.interfaces.EvaluatorConfiguration> configurations = new ArrayList<>();
 
         for(EvaluatorSourceEntity evaluatorSource : this.getEvaluatorSources()){
@@ -283,16 +305,45 @@ public class EvaluatorServiceImpl implements EvaluatorService {
                 }
             }
             if(cacheValue != null){
-                configurations.add(cacheValue.getConfiguration());
+                EvaluatorRestrictionEntity restriction = unrestricted ? null : this.getEvaluatorRestriction(evaluatorSource.getEvaluatorId());
+                configurations.add(restriction == null ? cacheValue.getConfiguration() : this.restrictConfiguration(cacheValue.getConfiguration(), restriction));
             }
         }
 
         return configurations;
     }
 
+    // a copy: the cached configuration is shared by every request of the tenant
+    private EvaluatorConfiguration restrictConfiguration(EvaluatorConfiguration configuration, EvaluatorRestrictionEntity restriction) {
+        EvaluatorConfiguration restricted = new EvaluatorConfiguration();
+        restricted.setEvaluatorId(configuration.getEvaluatorId());
+        restricted.setRankConfig(configuration.getRankConfig());
+        restricted.setEvaluatorEntityTypes(configuration.getEvaluatorEntityTypes());
+        restricted.setUseSharedStorage(configuration.isUseSharedStorage());
+        restricted.setHasLogo(configuration.isHasLogo());
+        restricted.setConfigurationFields(configuration.getConfigurationFields());
+        restricted.setUserConfigurationFields(configuration.getUserConfigurationFields());
+        restricted.setSemantics(configuration.getSemantics());
+        List<String> benchmarkIds = restriction.getBenchmarkIds() != null ? restriction.getBenchmarkIds() : List.of();
+        List<String> testIds = restriction.getTestIds() != null ? restriction.getTestIds() : List.of();
+        if (configuration.getAvailableBenchmarks() != null) restricted.setAvailableBenchmarks(configuration.getAvailableBenchmarks().stream().filter(x -> benchmarkIds.contains(x.getId())).collect(Collectors.toList()));
+        if (configuration.getAvailableTests() != null) restricted.setAvailableTests(configuration.getAvailableTests().stream().filter(x -> testIds.contains(x.getId())).collect(Collectors.toList()));
+        return restricted;
+    }
+
+    private void checkEvaluationAllowed(String evaluatorId, List<String> benchmarkIds, List<String> testIds) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        EvaluatorRestrictionEntity restriction = this.getEvaluatorRestriction(evaluatorId);
+        if (restriction == null) return;
+        List<String> allowedBenchmarkIds = restriction.getBenchmarkIds() != null ? restriction.getBenchmarkIds() : List.of();
+        List<String> allowedTestIds = restriction.getTestIds() != null ? restriction.getTestIds() : List.of();
+        boolean allowed = (benchmarkIds == null || allowedBenchmarkIds.containsAll(benchmarkIds)) && (testIds == null || allowedTestIds.containsAll(testIds));
+        if (!allowed) throw new MyValidationException(this.errors.getEvaluationNotAllowed().getCode(), this.errors.getEvaluationNotAllowed().getMessage());
+    }
+
     @Override
     public List<RankResultModel> rankPlan(UUID planId, String evaluatorId, String format, List<String> benchmarkIds, List<String> testIds) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
         this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(planId)), Permission.EvaluatePlan);
+        this.checkEvaluationAllowed(evaluatorId, benchmarkIds, testIds);
         EvaluatorClientImpl repository = this.getEvaluatorClient(evaluatorId);
 
         if(repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{format, EvaluatorClientImpl.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -467,6 +518,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     @Override
     public List<RankResultModel> rankDescription(UUID descriptionId, String repositoryId, String format, List<String> benchmarkIds, List<String> testIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
         this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(descriptionId)), Permission.EvaluateDescription);
+        this.checkEvaluationAllowed(repositoryId, benchmarkIds, testIds);
         EvaluatorClientImpl repository = this.getEvaluatorClient(repositoryId);
 
         if(repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{format, EvaluatorClientImpl.class.getSimpleName()}, LocaleContextHolder.getLocale()));

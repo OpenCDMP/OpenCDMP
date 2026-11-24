@@ -11,7 +11,7 @@
                 <span class="reference-card--meta">
                     @if (displayId()) {
                         @if (navigationUrl()) {
-                            <a class="reference-card--id reference-card--id-link" [href]="navigationUrl()" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ displayId() }}</a>
+                            <a class="reference-card--id reference-card--id-link" [href]="navigationUrl()" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ displayId() }}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span></a>
                         } @else {
                             <span class="reference-card--id">{{ displayId() }}</span>
                         }

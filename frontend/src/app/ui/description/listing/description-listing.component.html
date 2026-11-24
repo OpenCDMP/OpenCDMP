@@ -107,6 +107,7 @@
                 @if ((isLoading || listingItems?.length || hasFilters) && !isPublic) {
                     <button
                         class="filter-btn"
+                        id="description-listing-filters-toggle"
                         data-tour="description-listing-filters"
                         mat-stroked-button
                         (click)="toggleFilters()"
@@ -224,8 +225,12 @@
             [featuredReferenceTypes]="orderedDescriptionPreferencesList ?? []"
             [expandReferenceTypeId]="expandReferenceTypeId"
             [isOpen]="filtersDialogOpen"
-            (closed)="filtersDialogOpen = false"
+            (closed)="closeFilters()"
+            (keydown.escape)="closeFilters($event)"
             (filtersChanged)="onFiltersChanged($event)"
         ></app-description-filter-dialog>
     </aside>
+    @if (filtersDialogOpen) {
+        <div class="listing-filters-backdrop" aria-hidden="true" (click)="closeFilters()"></div>
+    }
 </div>

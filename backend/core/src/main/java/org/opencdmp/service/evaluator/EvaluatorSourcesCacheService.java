@@ -2,6 +2,7 @@ package org.opencdmp.service.evaluator;
 
 import gr.cite.tools.cache.CacheService;
 import org.opencdmp.commons.types.evaluator.EvaluatorSourceEntity;
+import org.opencdmp.commons.types.tenantconfiguration.EvaluatorRestrictionEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +17,25 @@ public class EvaluatorSourcesCacheService extends CacheService<EvaluatorSourcesC
         public EvaluatorSourceCacheValue() {
         }
 
-        public EvaluatorSourceCacheValue(String tenantCode, List<EvaluatorSourceEntity> sources) {
+        public EvaluatorSourceCacheValue(String tenantCode, List<EvaluatorSourceEntity> sources, List<EvaluatorRestrictionEntity> restrictions) {
             this.tenantCode = tenantCode;
             this.sources = sources;
+            this.restrictions = restrictions;
         }
 
         private String tenantCode;
 
         private List<EvaluatorSourceEntity> sources;
+
+        private List<EvaluatorRestrictionEntity> restrictions;
+
+        public List<EvaluatorRestrictionEntity> getRestrictions() {
+            return restrictions;
+        }
+
+        public void setRestrictions(List<EvaluatorRestrictionEntity> restrictions) {
+            this.restrictions = restrictions;
+        }
 
 
         public String getTenantCode() {

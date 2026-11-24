@@ -350,7 +350,7 @@ public class PlanBlueprintController {
             @Parameter(name = "groupId", description = "The group id of a plan blueprint to import. This is optional.", example = "c0c163dc-2965-45a5-9608-f76030578609") @PathVariable(value = "groupId", required = false) UUID groupId,
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
     ) throws IOException, JAXBException, InvalidApplicationException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
-        logger.debug(new MapLogEntry("clone" + PlanBlueprint.class.getSimpleName()).And("file", file));
+        logger.debug(new MapLogEntry("clone" + PlanBlueprint.class.getSimpleName()).And("fileName", file.getOriginalFilename()));
 
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         this.censorFactory.censor(PlanBlueprintCensor.class).censor(fieldSet, null);
@@ -358,7 +358,7 @@ public class PlanBlueprintController {
         PlanBlueprint model = this.planBlueprintService.importXml(file.getBytes(), groupId, file.getOriginalFilename(), fieldSet);
 
         this.auditService.track(AuditableAction.PlanBlueprint_Import, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("file", file),
+                new AbstractMap.SimpleEntry<String, Object>("fileName", file.getOriginalFilename()),
                 new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
         ));
 

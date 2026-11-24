@@ -79,6 +79,13 @@ export class PlanSectionTemplatesEditorComponent extends BaseComponent {
         })
     }
 
+    onDescriptionKeydown(event: Event, id: Guid): void {
+        // Keys pressed on the nested delete button bubble up to the row
+        if (event.target !== event.currentTarget) { return; }
+        event.preventDefault();
+        this.navigateToDescription.emit(id);
+    }
+
     //** LOCKS */
     descriptionLocked(id: Guid): boolean {
         return this.planLockService?.externalLockIds()?.includes(id?.toString());

@@ -30,7 +30,7 @@
                   <mat-label>{{ label }}</mat-label>
                   <input [id]="fieldIndex" matInput	class="col-md-12" [formControl]="field.get('textValue')" [type]="!secret || hideStates[i + '_' + fieldIndex] ? 'text' : 'password'" [attr.autocomplete]="secret ? 'off' : null">
                   @if (secret) {
-                    <mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)" > {{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }} </mat-icon>
+                    <button mat-icon-button matSuffix type="button" (click)="toggleVisibility(i, fieldIndex)" [attr.aria-label]="(hideStates[i + '_' + fieldIndex] ? 'PLUGIN-EDITOR.HIDE-VALUE' : 'PLUGIN-EDITOR.SHOW-VALUE') | translate: { field: label }"><mat-icon aria-hidden="true">{{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }}</mat-icon></button>
                     <mat-hint>{{ 'TENANT-CONFIGURATION.SECRET.HINT' | translate }}</mat-hint>
                   }
                   @if (!secret && defaultValue(plugin.get('pluginCode').value, field.get('code').value, false); as fallback) {
@@ -139,7 +139,7 @@
                   <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
                   <input [id]="fieldIndex" matInput class="col-md-12" [formControl]="field.get('textValue')" [type]="!secret || hideStates[i + '_' + fieldIndex] ? 'text' : 'password'">
                   @if (secret) {
-                    <mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)">{{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    <button mat-icon-button matSuffix type="button" (click)="toggleVisibility(i, fieldIndex)" [attr.aria-label]="(hideStates[i + '_' + fieldIndex] ? 'PLUGIN-EDITOR.HIDE-VALUE' : 'PLUGIN-EDITOR.SHOW-VALUE') | translate: { field: getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }"><mat-icon aria-hidden="true">{{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }}</mat-icon></button>
                   }
                   @if (!secret && defaultValue(plugin.get('pluginCode').value, field.get('code').value, true); as fallback) {
                     <mat-hint>{{ 'PLUGIN-EDITOR.DEFAULT-VALUE-HINT' | translate: { value: fallback } }}</mat-hint>

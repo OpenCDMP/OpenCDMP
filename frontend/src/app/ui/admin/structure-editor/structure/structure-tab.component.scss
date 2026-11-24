@@ -11,4 +11,4 @@
 .st-body { display: flex; gap: 1.5rem; align-items: flex-start; }
 .st-outline { width: 340px; flex: none; position: sticky; top: .5rem; }
 .st-pane { flex: 1 1 0; min-width: 0; }
-@media (max-width: 1000px) { .st-body { flex-direction: column; } .st-outline { width: 100%; position: static; } }
+@media (max-width: 1000px) { .st-body { flex-direction: column; } .st-outline { width: 100%; position: static; } .st-pane { align-self: stretch; } }

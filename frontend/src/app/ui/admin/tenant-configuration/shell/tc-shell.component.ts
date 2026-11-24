@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, ElementRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
@@ -27,13 +27,31 @@ export class TcShellComponent {
 	// a wrapped listing lives at its own address, outside /tenant-configuration
 	protected readonly wrapped = inject(ActivatedRoute).snapshot.data['tcWrapped'] === true;
 
+	private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
+
 	constructor() {
+		const navigationEnd$ = inject(Router).events.pipe(filter(x => x instanceof NavigationEnd), takeUntilDestroyed());
+		// RouterLinkActive sets its class after NavigationEnd, hence the timeouts.
+		afterNextRender(() => setTimeout(() => this.revealActiveLink()));
+		navigationEnd$.subscribe(() => setTimeout(() => this.revealActiveLink()));
+
 		if (this.wrapped) return;
 		// one page view per section
 		const analytics = inject(AnalyticsService);
 		analytics.trackPageView(AnalyticsService.TenantConfigurationsColorsEditor);
-		inject(Router).events.pipe(filter(x => x instanceof NavigationEnd), takeUntilDestroyed())
-			.subscribe(() => analytics.trackPageView(AnalyticsService.TenantConfigurationsColorsEditor));
+		navigationEnd$.subscribe(() => analytics.trackPageView(AnalyticsService.TenantConfigurationsColorsEditor));
+	}
+
+	// Below 900px the menu is one scrolling row, where the current page's link can sit out of view.
+	private revealActiveLink(): void {
+		const nav = this.host.nativeElement.querySelector<HTMLElement>('.tc-nav');
+		const active = nav?.querySelector<HTMLElement>('.tc-nav__item--active');
+		if (!active || nav.scrollWidth <= nav.clientWidth) return;
+		// scrollLeft rather than scrollIntoView, which would also scroll the page's own containers
+		const left = active.offsetLeft - nav.offsetLeft;
+		if (left < nav.scrollLeft || left + active.offsetWidth > nav.scrollLeft + nav.clientWidth) {
+			nav.scrollLeft = left - (nav.clientWidth - active.offsetWidth) / 2;
+		}
 	}
 
 	protected readonly groups = groupTcPages(TC_PAGES

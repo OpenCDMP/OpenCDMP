@@ -386,7 +386,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
                 data.setRole(user.getRole());
                 this.tenantEntityManagerFactory.getInstance().persist(data);
                 if (!this.userScopeFactory.getInstance().getUserId().equals(user.getUserId())) {
-                    DescriptionTemplateEntity descriptionTemplate = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().isActive(IsActive.Active).ids(data.getDescriptionTemplateId()).first();
+                    // tracked on purpose: this is the caller's own managed entity, and disableTracking would detach it, losing the version status set after this
+                    DescriptionTemplateEntity descriptionTemplate = this.queryFactory.query(DescriptionTemplateQuery.class).isActive(IsActive.Active).ids(data.getDescriptionTemplateId()).first();
                     if (descriptionTemplate == null){
                         throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getDescriptionTemplateId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
                     }
@@ -630,7 +631,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         data.setCode(oldDescriptionTemplateEntity.getCode());
         data.setTypeId(model.getType());
         data.setLanguage(model.getLanguage());
-        data.setStatus(model.getStatus());
+        // a new version always starts as a draft; finalizing it is a separate save
+        data.setStatus(DescriptionTemplateStatus.Draft);
 
         if (!this.conventionService.isListNullOrEmpty(model.getDefinition().getPluginConfigurations())) {
             org.opencdmp.commons.types.planblueprint.DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(oldDescriptionTemplateEntity.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, oldDescriptionTemplateEntity.getDefinition());

@@ -26,7 +26,7 @@
   }
 }
 @if(evaluations()?.length > pageSize()){
-  <span class="link-color show-more" role="button" (click)="toggleShowMore()">
+  <span class="link-color show-more" role="button" tabindex="0" [attr.aria-expanded]="showMore()" (click)="toggleShowMore()" (keydown.enter)="toggleShowMore()" (keydown.space)="$event.preventDefault(); toggleShowMore()">
     @if(!showMore()){
         {{'GENERAL.ACTIONS.SHOW-MORE' | translate | lowercase}} ({{evaluations().length - pageSize()}})
     }@else{

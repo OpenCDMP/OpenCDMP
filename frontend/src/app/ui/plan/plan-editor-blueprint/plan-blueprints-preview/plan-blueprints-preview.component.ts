@@ -55,13 +55,14 @@ import { MatCard, MatCardHeader, MatCardTitle, MatCardContent } from "@angular/m
 import { PlanCreationConsentComponent } from "../../plan-creation-consent/plan-creation-consent.component";
 import { PlanUploadDialogComponent } from "../../new/upload-dialogue/plan-upload-dialog.component";
 import { InvokeMemoizedPipe } from "../../../../../common/formatting/pipes/invoke-memoized.pipe";
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 
 @Component({
     selector: 'app-plan-blueprints-preview-component',
     templateUrl: './plan-blueprints-preview.component.html',
     styleUrls: ['./plan-blueprints-preview.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [RouterLink, MatIcon, TextFilterComponent, NgTemplateOutlet, MatButton, MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatAccordion, PlanCreationConsentComponent, PlanUploadDialogComponent, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, UpperCasePipe, TranslatePipe, InvokeMemoizedPipe]
+    imports: [RouterLink, MatIcon, TextFilterComponent, NgTemplateOutlet, MatButton, MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatAccordion, PlanCreationConsentComponent, PlanUploadDialogComponent, CdkTrapFocus,MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, UpperCasePipe, TranslatePipe, InvokeMemoizedPipe]
 })
 
 export class PlanBlueprintsPreviewComponent extends BaseComponent implements OnInit {
@@ -528,6 +529,12 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent implements OnI
 	selectBlueprint(blueprint: PlanBlueprint): void {
 		this.selectedBlueprint = blueprint;
 		this.planCreationConsentAccepted = false;
+	}
+
+	// Only on pointer clicks: keyboard users stay in the list. Same breakpoint as the stacked layout in the SCSS.
+	revealPreview(): void {
+		if (!window.matchMedia('(max-width: 991px)').matches) return;
+		setTimeout(() => document.getElementById('blueprint-title')?.scrollIntoView({ block: 'start' }));
 	}
 
     getBlueprintSortDesc: (description: string) => string = (description) => {

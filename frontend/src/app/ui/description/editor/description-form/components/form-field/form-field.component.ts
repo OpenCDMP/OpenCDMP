@@ -98,6 +98,8 @@ export class FormFieldComponent extends BaseComponent implements OnInit {
 	@Input() hideLabel: boolean = false;
 	/** The field-set heading already carries the required asterisk, so the control must not repeat it. */
 	@Input() hideRequiredMarker: boolean = false;
+	/** The question has several inputs, so a filled one still needs its label shown above it. */
+	@Input() showLabel: boolean = false;
 
 	@Input() detectChangesObservable: Observable<any>;
     @Input() path: string;
@@ -430,7 +432,7 @@ export class FormFieldComponent extends BaseComponent implements OnInit {
     }
 
     get labelAsPlaceholder(): boolean {
-        return [
+        return !this.showLabel && [
             FieldType.FREE_TEXT, FieldType.TEXT_AREA, FieldType.RICH_TEXT_AREA, FieldType.NUMBER, FieldType.DATE_PICKER,
             FieldType.INTERNAL_ENTRIES_PLANS, FieldType.INTERNAL_ENTRIES_DESCRIPTIONS, FieldType.TAGS, FieldType.REFERENCE_TYPES
         ].includes(this.field?.data?.fieldType);

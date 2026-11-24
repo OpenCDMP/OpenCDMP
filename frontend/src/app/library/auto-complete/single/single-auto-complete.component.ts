@@ -283,7 +283,23 @@ export class SingleAutoCompleteComponent extends CustomComponentBase implements 
         setTimeout(() => this.autocompleteTrigger?.closePanel())
 	}
 
-	_optionActionClick(item: any, event: MouseEvent): void {
+	_optionActionKeydown(event: KeyboardEvent): void {
+		const activeOption = this.autocompleteTrigger?.activeOption;
+		if (!this._showsOptionActionIcon || !this.autocompleteTrigger.panelOpen || !activeOption) { return; }
+		this._optionActionClick(activeOption.value, event);
+	}
+
+	// A custom option template replaces the row that holds the action icon
+	get _showsOptionActionIcon(): boolean {
+		return !!this.popupItemActionIcon && !this.configuration.optionTemplate;
+	}
+
+	get _inputDescribedBy(): string | null {
+		const ids = this._showsOptionActionIcon ? `${this.describedBy} ${this.id}-option-action-hint` : this.describedBy;
+		return ids.trim() || null;
+	}
+
+	_optionActionClick(item: any, event: Event): void {
 		if (event != null) {
 			event.stopPropagation();
 			event.preventDefault();

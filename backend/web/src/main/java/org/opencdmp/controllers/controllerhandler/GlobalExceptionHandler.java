@@ -6,8 +6,12 @@ import gr.cite.tools.logging.LoggerService;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.util.DisconnectedClientHelper;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -27,10 +31,20 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleUnexpectedErrors(Exception exception, WebRequest request) throws Exception {
+		if (DisconnectedClientHelper.isClientDisconnectedException(exception)) {
+			// the client is gone, so there is nobody to send a response to
+			this.log(System.Logger.Level.WARNING, exception, MessageFormat.format("client disconnected during {0}", this.describe(request)));
+			return null;
+		}
 		HandledException handled = this.handleException(exception, request);
-		this.log(handled.getLevel(), exception, MessageFormat.format("returning code {0} and payload {1}", handled.getStatusCode(), handled.getMessage()));
+		this.log(handled.getLevel(), exception, MessageFormat.format("returning code {0} for {1} and payload {2}", handled.getStatusCode(), this.describe(request), handled.getMessage()));
 		return new ResponseEntity<>(handled.getMessage(), handled.getStatusCode());
     }
+
+	private String describe(WebRequest request) {
+		if (request instanceof ServletWebRequest servletWebRequest) return servletWebRequest.getRequest().getMethod() + " " + servletWebRequest.getRequest().getRequestURI();
+		return request.getDescription(false);
+	}
 
 	public void log(System.Logger.Level level, Exception e, String message) {
 		if (level != null) {
@@ -45,7 +59,9 @@ public class GlobalExceptionHandler {
 					logger.info(message, e);
 					break;
 				case WARNING:
-					logger.warn(message, e);
+					// one line by default; the stack trace is there when debug logging is on
+					logger.warn(message + " - " + e.getMessage());
+					logger.debug(message, e);
 					break;
 				case ERROR:
 					logger.error(message, e);
@@ -137,6 +153,22 @@ public class GlobalExceptionHandler {
 							Map.entry("error", myApplicationException.getMessage())
 					);
 				}
+			}
+			case HttpMessageNotReadableException ignored -> {
+				logLevel = System.Logger.Level.WARNING;
+				statusCode = HttpStatus.BAD_REQUEST;
+				// the parser's message names internal classes, so it goes to the log, not the client
+				result = Map.ofEntries(
+						Map.entry("error", "Malformed request body")
+				);
+			}
+			// Spring's own request errors (wrong method, missing path or parameter) already carry their status
+			case ErrorResponse errorResponse when errorResponse.getStatusCode().is4xxClientError() -> {
+				logLevel = System.Logger.Level.WARNING;
+				statusCode = HttpStatus.valueOf(errorResponse.getStatusCode().value());
+				result = Map.ofEntries(
+						Map.entry("error", exception.getMessage())
+				);
 			}
 			default ->  {
 				logLevel = System.Logger.Level.ERROR;

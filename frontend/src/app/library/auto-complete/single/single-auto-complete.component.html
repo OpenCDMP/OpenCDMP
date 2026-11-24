@@ -25,7 +25,7 @@
 <span class="chip-text" [title]="_displayFn(value)">{{_displayFn(value)}}</span>
 }
 									</ng-container>
-									<button mat-icon-button class="popup-icon always-enabled" (click)="_selectedItemOptionActionClicked(value, $event)" [disabled]="isPopupSelectedItemActionIconDisabled">
+									<button mat-icon-button class="popup-icon always-enabled" (click)="_selectedItemOptionActionClicked(value, $event)" [disabled]="isPopupSelectedItemActionIconDisabled" [attr.aria-label]="'COMMONS.ACTIONS.VIEW-DETAILS' | translate">
 										<mat-icon aria-hidden="true">{{popupSelectedItemActionIcon}}</mat-icon>
 									</button>
 								</div>
@@ -42,12 +42,12 @@
 }
 			@if (!value) {
 <div class="col-12">
-				<input matInput #autocompleteInput class="col-12" [id]="id" [name]="id" autocomplete="off" [attr.aria-describedby]="describedBy || null" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" [required]="required" (keyup)="onKeyUp($event)" (keydown.enter)="$event.preventDefault()" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
+				<input matInput #autocompleteInput class="col-12" [id]="id" [name]="id" autocomplete="off" [attr.aria-describedby]="_inputDescribedBy" (keydown.control.enter)="_optionActionKeydown($event)" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" [required]="required" (keyup)="onKeyUp($event)" (keydown.enter)="$event.preventDefault()" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
 			</div>
 }
 		} @else {
 			<!-- default logic -->
-			<input matInput #autocompleteInput class="col-12" [id]="id" [name]="id" autocomplete="off" [attr.aria-describedby]="describedBy || null" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" [required]="required" (keyup)="onKeyUp($event)" (keydown.enter)="$event.preventDefault()" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
+			<input matInput #autocompleteInput class="col-12" [id]="id" [name]="id" autocomplete="off" [attr.aria-describedby]="_inputDescribedBy" (keydown.control.enter)="_optionActionKeydown($event)" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" [required]="required" (keyup)="onKeyUp($event)" (keydown.enter)="$event.preventDefault()" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
 		}
 
 		<!-- The attribute autocomplete="nope", set by downshift, is ignored in Chrome 67 and Opera 54 (latest at the time of writing)
@@ -55,6 +55,9 @@
 		@if (!disabled) {
 <mat-icon class="align-arrow-right" matSuffix>arrow_drop_down</mat-icon>
 }
+		@if (_showsOptionActionIcon) {
+			<span [id]="id + '-option-action-hint'" class="cdk-visually-hidden">{{'GENERAL.AUTO-CONPLETE.OPTION-ACTION-HINT' | translate}}</span>
+		}
 		<mat-autocomplete #autocomplete="matAutocomplete" [displayWith]="_displayFn.bind(this)" (optionSelected)="_optionSelected($event)">
 			<div>
 				@if (_groupedItems) {
@@ -81,7 +84,7 @@
 								</div>
 								<div class="col-auto">
 									@if (popupItemActionIcon) {
-<span class="option-icon" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
+<span class="option-icon" aria-hidden="true" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
 }
 								</div>
 							</div>
@@ -120,7 +123,7 @@
 									</div>
 									<div class="col-auto align-self-center">
 										@if (popupItemActionIcon) {
-<span class="option-icon" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
+<span class="option-icon" aria-hidden="true" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
 }
 									</div>
 								</div>

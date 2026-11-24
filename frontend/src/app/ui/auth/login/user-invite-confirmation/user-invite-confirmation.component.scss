@@ -16,3 +16,14 @@
   margin-left: 9rem;
   margin-right: 11rem;
 }
+
+@media (max-width: 768px) {
+	.user-invite-title {
+		padding-left: 1rem;
+	}
+
+	.user-invite-content {
+		margin-left: 0;
+		margin-right: 0;
+	}
+}

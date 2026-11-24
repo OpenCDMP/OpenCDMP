@@ -12,6 +12,6 @@
 <div class="editor-wrapper" [class]="wrapperClasses()" [id]="id()">
 	<angular-editor class="full-width editor" [class.disabled]="form()?.disabled" [class.error]="form()?.touched && form()?.invalid" [config]="editorConfig" [formControl]="form()" [required]="required()" [attr.aria-labelledby]="id() + '-label'" [attr.aria-required]="required()" [attr.aria-invalid]="form()?.touched && form()?.invalid" placeholder="{{ (placeholder() ? (placeholder() | translate) : '') + (required() && showRequiredMarker() ? ' *' : '') }}" (paste)="pasteWithoutFormatting($event)"></angular-editor>
 	@if (form()?.value && !form()?.disabled && editorConfig.showToolbar) {
-		<mat-icon (click)="form().patchValue('')" class="clear">close</mat-icon>
+		<mat-icon role="button" tabindex="0" [attr.aria-label]="'COMMONS.ACTIONS.CLEAR' | translate" (click)="form().patchValue('')" (keydown.enter)="form().patchValue('')" (keydown.space)="$event.preventDefault(); form().patchValue('')" class="clear">close</mat-icon>
 	}
 </div>

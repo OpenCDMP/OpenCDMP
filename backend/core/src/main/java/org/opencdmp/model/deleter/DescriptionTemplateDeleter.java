@@ -4,6 +4,7 @@ import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.deleter.DeleterFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
+import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
@@ -105,7 +106,7 @@ public class DescriptionTemplateDeleter implements Deleter {
         for (DescriptionTemplateEntity item : data) {
             if (this.lockService.isLocked(item.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescriptionTemplate().getCode(), this.errors.getLockedDescriptionTemplate().getMessage());
 
-            if (activeDescriptions.stream().map(DescriptionEntity::getDescriptionTemplateId).anyMatch(x-> x.equals(item.getId()))) throw new MyApplicationException("template " + item.getCode() + " used by descriptions");
+            if (activeDescriptions.stream().map(DescriptionEntity::getDescriptionTemplateId).anyMatch(x-> x.equals(item.getId()))) throw new MyValidationException(this.errors.getDescriptionTemplateInUse().getCode(), this.errors.getDescriptionTemplateInUse().getMessage());
             logger.trace("deleting item {}", item.getId());
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);

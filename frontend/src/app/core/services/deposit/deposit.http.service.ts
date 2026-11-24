@@ -6,12 +6,16 @@ import { DepositAuthenticateRequest, DepositRequest } from '@app/core/model/depo
 import { Guid } from '@common/types/guid';
 import { EntityDoi } from '@app/core/model/entity-doi/entity-doi';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { DepositAuthMethodResult } from '@app/core/model/deposit/deposit-auth-method-result';
 import { DepositFile } from '@app/core/model/deposit/deposit-file';
 import { DepositFileKind } from '@app/core/common/enum/deposit-file-kind';
+import { EntityDoiStatus } from '@app/core/common/enum/entity-doi-status';
+import { IsActive } from '@app/core/common/enum/is-active.enum';
+import { QueryResult } from '@common/model/query-result';
+import { nameof } from 'ts-simple-nameof';
 
 @Injectable()
 export class DepositHttpService {
@@ -52,6 +56,20 @@ export class DepositHttpService {
 	deposit(item: DepositRequest): Observable<EntityDoi> {
 		const url = `${this.apiBase}/deposit`;
 		return this.http.post<EntityDoi>(url, item).pipe(catchError((error: any) => throwError(error)));
+	}
+
+	// A plan lists only its published DOIs; deposits still running are asked for separately.
+	getPendingDeposits(planId: Guid): Observable<EntityDoi[]> {
+		const url = `${this.configurationService.server}entity-doi/query`;
+		const lookup = {
+			entityIds: [planId],
+			statuses: [EntityDoiStatus.Pending],
+			isActive: [IsActive.Active],
+			page: { offset: 0, size: 20 },
+			order: { items: ['-' + nameof<EntityDoi>(x => x.createdAt)] },
+			project: { fields: [nameof<EntityDoi>(x => x.id), nameof<EntityDoi>(x => x.repositoryId), nameof<EntityDoi>(x => x.createdAt), nameof<EntityDoi>(x => x.status)] }
+		};
+		return this.http.post<QueryResult<EntityDoi>>(url, lookup).pipe(map(result => result?.items ?? []), catchError((error: any) => throwError(error)));
 	}
 
 	preview(item: DepositPreviewRequest): Observable<DepositPreviewModel> {

@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "A carregar...",
-			"NO-ITEMS": "Nenhum resultado encontrado!"
+			"NO-ITEMS": "Nenhum resultado encontrado!",
+			"OPTION-ACTION-HINT": "Prima Ctrl+Enter para ver os detalhes da opção realçada"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Introduza texto"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Um campo faz referência a um plano que não existe nesta instalação (id: {{id}}). Remova esse valor.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Um campo faz referência a um recurso que não existe nesta instalação (id: {{id}}). Remova esse valor.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Não pode retirar a si próprio uma função de administrador.",
-			"LAST-TENANT-ADMIN": "Uma organização precisa de pelo menos um administrador da organização. Torne primeiro outra pessoa administradora da organização."
+			"LAST-TENANT-ADMIN": "Uma organização precisa de pelo menos um administrador da organização. Torne primeiro outra pessoa administradora da organização.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Este modelo de recurso não pode ser eliminado porque há recursos que o utilizam."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Atenção!",
@@ -596,6 +598,8 @@
 			"NEW": "Novo",
 			"CREATE": "Criar",
 			"TEST": "Testar",
+			"CLEAR": "Limpar",
+			"VIEW-DETAILS": "Ver detalhes",
 			"BOOLEAN": {
 				"YES": "Sim",
 				"NO": "Não"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Ligação",
 				"CONNECTION-TENANT": "Onde o plugin é executado e como a plataforma se autentica nele.",
 				"CONNECTION-INSTALLATION": "Este plugin é fornecido pela instalação, que gere a respetiva ligação. Pode ainda assim verificar se responde.",
+				"BENCHMARKS": "Benchmarks",
+				"BENCHMARKS-HINT": "Que benchmarks e testes deste avaliador os seus utilizadores podem executar.",
 				"REMOVE": "Remover plugin",
 				"REMOVE-CONFIRM": "Remover {{name}}? Os seus utilizadores deixarão de o ver. Esta ação também guarda todas as outras alterações por guardar nesta página."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Disponibilizar todos os benchmarks e testes",
+				"BENCHMARKS": "Benchmarks",
+				"TESTS": "Testes",
+				"NO-BENCHMARKS": "Este avaliador não disponibiliza benchmarks.",
+				"NO-TESTS": "Este avaliador não disponibiliza testes.",
+				"UNAVAILABLE": "Os benchmarks e testes aparecem quando o avaliador estiver ativado, guardado e a responder."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Está disponível uma nova versão do Blueprint usado para criar este plano. Pode utilizá-la criando uma nova versão do plano.",
 		"PID-FINALIZE-MESSAGE": "Precisa de finalizar o PGD antes de o depositar.",
 		"PID-PUBLISH-MESSAGE": "Publique o plano num repositório para obter um DOI.",
+		"PUBLISHING": "A ser publicado em {{repository}} desde {{time}}.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Ficheiro anexado. Inicie sessão para visualizar.",
 		"COLLABORATORS": "Colaboradores",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Adicione pelo menos uma opção",
 			"INPUT-UPLOAD-TYPES": "Escolha os tipos de ficheiro permitidos",
 			"INPUT-INVALID": "Uma definição da entrada é inválida",
+			"RULE-TARGET-MISSING": "Uma regra mostra uma questão que já não existe",
 			"REPEATABLE": "As definições de repetição são inválidas.",
 			"QUESTIONS-OK": "Cada questão tem título e pelo menos uma entrada.",
 			"NO-ICON": "Sem ícone. Os autores verão o predefinido.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Questão a mostrar",
 			"PICK-TARGET": "Escolha uma questão",
 			"TARGET-REQUIRED": "Escolha a questão a mostrar.",
+			"TARGET-MISSING": "A questão que esta regra mostrava já não existe. Escolha outra.",
 			"QUESTIONS": "Questões",
 			"INPUTS": "Entradas individuais",
+			"SECTIONS": "Secções",
 			"REMOVE": "Remover regra",
 			"YES": "Sim",
 			"NO": "Não",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Adicionar contacto",
 			"SEARCH-CONTACT": "Procurar contacto",
 			"REMOVE-USER": "Remover utilizador",
+			"ADD-USER": "Adicionar utilizador",
 			"SAVE-AND-CLOSE": "Guardar e Fechar",
 			"SAVE-AND-CONTINUE": "Guardar e Continuar",
 			"REVERSE": "Reverter finalização",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Remover utilizador",
+			"ADD-USER": "Adicionar utilizador",
 			"INVITE": "Convidar"
 		},
 		"USERS-REQUIRED": "É necessário pelo menos um utilizador",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Predefinido",
 		"DEFAULT-OPTION-WITH-VALUE": "Predefinido ({{value}})",
 		"DEFAULT-VALUE-HINT": "Predefinido: {{value}}",
+		"SHOW-VALUE": "Mostrar {{field}}",
+		"HIDE-VALUE": "Ocultar {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Modelo Docx do Plano",

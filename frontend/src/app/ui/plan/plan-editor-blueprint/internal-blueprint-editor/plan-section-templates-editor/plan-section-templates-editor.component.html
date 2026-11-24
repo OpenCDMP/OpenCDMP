@@ -1,7 +1,7 @@
 <div class="info">{{'PLAN-EDITOR.TEMPLATES-SECTION.INFO' | translate}}</div>
-<div class="d-flex justify-content-between align-items-center gap-1-rem mb-3" >
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-1-rem mb-3" >
     <span>{{'PLAN-EDITOR.TEMPLATES-SECTION.LINKED-DESCRIPTIONS' | translate}}</span>
-    <div class="d-flex align-items-center gap-1-rem">
+    <div class="d-flex flex-wrap align-items-center gap-1-rem">
         @if(canManageTemplates()){
             <button mat-button color="secondary" (click)="manageTemplates.emit()">
                 <mat-icon aria-hidden="true">settings</mat-icon>
@@ -31,7 +31,7 @@
                 role="button"
                 [class.removable]="canDelete() && !descriptionLocked(description.lastPersist.id)"
                 [attr.aria-label]="'PLAN-EDITOR.TEMPLATES-SECTION.ACTIONS.GO-TO-DESCRIPTION' | translate :{name: description.formGroup?.get('label')?.value ?? ''}"
-                (click)="navigateToDescription.emit(description.lastPersist.id)" 
+                tabindex="0" (click)="navigateToDescription.emit(description.lastPersist.id)" (keydown.enter)="onDescriptionKeydown($event, description.lastPersist.id)" (keydown.space)="onDescriptionKeydown($event, description.lastPersist.id)"
             >
                 <div class="description--type-icon">
                     <ng-container *ngTemplateOutlet="iconTemplate; context: {template: $safeNavigationMigration(description.lastPersist?.descriptionTemplate)}"></ng-container>

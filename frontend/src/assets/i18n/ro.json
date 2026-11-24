@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "se încarcă...",
-			"NO-ITEMS": "Niciun rezultat găsit!"
+			"NO-ITEMS": "Niciun rezultat găsit!",
+			"OPTION-ACTION-HINT": "Apasă Ctrl+Enter pentru a vedea detaliile opțiunii evidențiate"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Introduceți text"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Un câmp face referire la un plan care nu există în această instalare (id: {{id}}). Eliminați această valoare.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Un câmp face referire la o resursă care nu există în această instalare (id: {{id}}). Eliminați această valoare.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Nu vă puteți retrage singur un rol de administrator.",
-			"LAST-TENANT-ADMIN": "O organizație are nevoie de cel puțin un administrator al organizației. Faceți mai întâi pe altcineva administrator al organizației."
+			"LAST-TENANT-ADMIN": "O organizație are nevoie de cel puțin un administrator al organizației. Faceți mai întâi pe altcineva administrator al organizației.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Acest șablon de resursă nu poate fi șters deoarece este folosit de resurse."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Avertisment!",
@@ -596,6 +598,8 @@
 			"NEW": "Nou",
 			"CREATE": "Creează",
 			"TEST": "Testează",
+			"CLEAR": "Șterge",
+			"VIEW-DETAILS": "Vezi detaliile",
 			"BOOLEAN": {
 				"YES": "Da",
 				"NO": "Nu"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Conexiune",
 				"CONNECTION-TENANT": "Unde rulează plugin-ul și cum se autentifică platforma la acesta.",
 				"CONNECTION-INSTALLATION": "Acest plugin este furnizat de instalare, care îi gestionează conexiunea. Puteți totuși verifica dacă răspunde.",
+				"BENCHMARKS": "Repere",
+				"BENCHMARKS-HINT": "Ce repere și teste ale acestui evaluator pot rula utilizatorii tăi.",
 				"REMOVE": "Elimină plugin-ul",
 				"REMOVE-CONFIRM": "Eliminați {{name}}? Utilizatorii dvs. nu îl vor mai vedea. Astfel se salvează și celelalte modificări nesalvate de pe această pagină."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Oferă toate reperele și testele",
+				"BENCHMARKS": "Repere",
+				"TESTS": "Teste",
+				"NO-BENCHMARKS": "Acest evaluator nu oferă repere.",
+				"NO-TESTS": "Acest evaluator nu oferă teste.",
+				"UNAVAILABLE": "Reperele și testele apar după ce evaluatorul este activat, salvat și răspunde."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "O nouă versiune a Blueprint-ului folosit pentru a crea acest Plan este acum disponibilă. O puteți utiliza creând o nouă versiune a planului.",
 		"PID-FINALIZE-MESSAGE": "Trebuie să finalizați planul înainte de a-l depune.",
 		"PID-PUBLISH-MESSAGE": "Publicați planul într-un depozit pentru a obține un DOI.",
+		"PUBLISHING": "Se publică în {{repository}} din {{time}}.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Fișier atașat. Autentificați-vă pentru a previzualiza",
 		"COLLABORATORS": "Colaboratori",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Adaugă cel puțin o opțiune",
 			"INPUT-UPLOAD-TYPES": "Alege tipurile de fișiere permise",
 			"INPUT-INVALID": "O setare a intrării este invalidă",
+			"RULE-TARGET-MISSING": "O regulă afișează o întrebare care nu mai există",
 			"REPEATABLE": "Setările de repetare sunt invalide.",
 			"QUESTIONS-OK": "Fiecare întrebare are titlu și cel puțin o intrare.",
 			"NO-ICON": "Nicio pictogramă setată. Autorii o vor vedea pe cea implicită.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Întrebarea de afișat",
 			"PICK-TARGET": "Alege o întrebare",
 			"TARGET-REQUIRED": "Alege întrebarea de afișat.",
+			"TARGET-MISSING": "Întrebarea afișată de această regulă nu mai există. Alege alta.",
 			"QUESTIONS": "Întrebări",
 			"INPUTS": "Intrări individuale",
+			"SECTIONS": "Secțiuni",
 			"REMOVE": "Elimină regula",
 			"YES": "Da",
 			"NO": "Nu",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Adaugă contact",
 			"SEARCH-CONTACT": "Caută contact",
 			"REMOVE-USER": "Elimină utilizator",
+			"ADD-USER": "Adaugă utilizator",
 			"SAVE-AND-CLOSE": "Salvează și închide",
 			"SAVE-AND-CONTINUE": "Salvează și continuă",
 			"REVERSE": "Anulează finalizarea",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Elimină utilizator",
+			"ADD-USER": "Adaugă utilizator",
 			"INVITE": "Invită"
 		},
 		"USERS-REQUIRED": "Cel puțin un utilizator este obligatoriu",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Implicit",
 		"DEFAULT-OPTION-WITH-VALUE": "Implicit ({{value}})",
 		"DEFAULT-VALUE-HINT": "Implicit: {{value}}",
+		"SHOW-VALUE": "Afișează {{field}}",
+		"HIDE-VALUE": "Ascunde {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Șablon Docx Plan",

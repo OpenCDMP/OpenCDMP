@@ -66,6 +66,7 @@ import org.opencdmp.event.TenantConfigurationTouchedEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
 import org.opencdmp.model.EntityDoi;
+import org.opencdmp.model.builder.EntityDoiBuilder;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.commonmodels.DepositConfigurationBuilder;
 import org.opencdmp.model.builder.commonmodels.plan.PlanCommonModelBuilder;
@@ -76,7 +77,6 @@ import org.opencdmp.depositbase.enums.DepositFileKind;
 import org.opencdmp.depositbase.repository.DepositPluginSettings;
 import org.opencdmp.commonmodels.models.plugin.PluginFieldModel;
 import org.opencdmp.commonmodels.models.plugin.PluginModel;
-import org.opencdmp.model.persist.EntityDoiPersist;
 import org.opencdmp.model.persist.StorageFilePersist;
 import org.opencdmp.model.persist.deposit.DepositAuthenticateRequest;
 import org.opencdmp.model.persist.deposit.DepositPreviewRequest;
@@ -90,7 +90,6 @@ import org.opencdmp.service.encryption.EncryptionService;
 import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
 import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationUserFieldPersist;
 import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationUserPersist;
-import org.opencdmp.service.entitydoi.EntityDoiService;
 import org.opencdmp.service.filetransformer.FileTransformerService;
 import org.opencdmp.service.storage.StorageFileProperties;
 import org.opencdmp.service.storage.StorageFileService;
@@ -102,7 +101,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.event.EventListener;
 import org.springframework.context.i18n.LocaleContextHolder;
+import jakarta.persistence.PersistenceException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -136,7 +140,6 @@ public class DepositServiceImpl implements DepositService {
     private final Map<String, DepositClient> clients;
     private final TokenExchangeCacheService tokenExchangeCacheService;
     private final AuthorizationService authorizationService;
-    private final EntityDoiService doiService;
     private final QueryFactory queryFactory;
     private final MessageSource messageSource;
     private final BuilderFactory builderFactory;
@@ -161,19 +164,20 @@ public class DepositServiceImpl implements DepositService {
     private final ErrorThesaurusProperties errors;
     private final WebhookService webhookService;
     private final PluginConfigurationService pluginConfigurationService;
+    private final PlatformTransactionManager transactionManager;
+
+    private static final Duration ABANDONED_DEPOSIT_AFTER = Duration.ofMinutes(30);
     
     @Autowired
     public DepositServiceImpl(DepositProperties depositProperties,
                               TokenExchangeCacheService tokenExchangeCacheService,
                               AuthorizationService authorizationService,
-                              EntityDoiService doiService,
                               QueryFactory queryFactory,
                               MessageSource messageSource,
-                              BuilderFactory builderFactory, DepositConfigurationCacheService depositConfigurationCacheService, FileTransformerService fileTransformerService, StorageFileService storageFileService, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, AuthorizationContentResolverFactory authorizationContentResolverFactory, ConventionService conventionService, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, DepositSourcesCacheService depositSourcesCacheService, AccountingService accountingService, TenantEntityManagerFactory tenantEntityManagerFactory, XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, WebhookService webhookService, PluginConfigurationService pluginConfigurationService) {
+                              BuilderFactory builderFactory, DepositConfigurationCacheService depositConfigurationCacheService, FileTransformerService fileTransformerService, StorageFileService storageFileService, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, AuthorizationContentResolverFactory authorizationContentResolverFactory, ConventionService conventionService, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, DepositSourcesCacheService depositSourcesCacheService, AccountingService accountingService, TenantEntityManagerFactory tenantEntityManagerFactory, XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, WebhookService webhookService, PluginConfigurationService pluginConfigurationService, PlatformTransactionManager transactionManager) {
         this.depositProperties = depositProperties;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
         this.authorizationService = authorizationService;
-        this.doiService = doiService;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
 	    this.builderFactory = builderFactory;
@@ -198,6 +202,7 @@ public class DepositServiceImpl implements DepositService {
         this.errors = errors;
         this.webhookService = webhookService;
         this.pluginConfigurationService = pluginConfigurationService;
+        this.transactionManager = transactionManager;
         this.clients = new HashMap<>();
     }
     
@@ -356,6 +361,8 @@ public class DepositServiceImpl implements DepositService {
 
         EntityDoiQuery entityDoiQuery = this.queryFactory.query(EntityDoiQuery.class).disableTracking().types(EntityType.Plan).entityIds(planEntity.getId()).repositoryIds(planDepositModel.getRepositoryId()).isActive(IsActive.Active);
         if (entityDoiQuery.count() > 0) throw new MyValidationException(this.errors.getCannotPlanDeposit().getCode(), planDepositModel.getRepositoryId());
+        // refused here as well as at the claim below, so a second attempt does not build the files first
+        if (this.isInProgress(this.pendingDeposit(planEntity.getId(), planDepositModel.getRepositoryId()))) throw new MyValidationException(this.errors.getDepositInProgress().getCode(), this.errors.getDepositInProgress().getMessage());
 
         //GK: Forth make the required files to be uploaded with the deposit
         //TODO: Properly create required files
@@ -432,6 +439,7 @@ public class DepositServiceImpl implements DepositService {
         }
         model.setEditedGroups(planDepositModel.getStoredGroups());
 
+        EntityDoiEntity claim = this.claimDeposit(planEntity.getId(), planDepositModel.getRepositoryId());
         String doi;
         try {
             //GK: Sixth Perform the deposit
@@ -439,22 +447,16 @@ public class DepositServiceImpl implements DepositService {
         } catch (Exception e) {
             // the model carries the plugin settings, decrypted credentials included: name the plan, never dump it
             log.error("deposit failed for plan " + planEntity.getId() + " to " + planDepositModel.getRepositoryId(), e);
+            this.failDeposit(claim);
             throw e;
         }
 
         //GK: Something has gone wrong return null
-        if (doi.isEmpty()) return null;
-
-        this.persistDepositMetadata(planEntity.getId(), planDepositModel.getRepositoryId(), planDepositModel.getStoredFields(), planDepositModel.getStoredGroups());
-        if (Boolean.TRUE.equals(planDepositModel.getSaveAuthFields()) && planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.AuthInfoFromUserProfile) && !this.conventionService.isListNullOrEmpty(planDepositModel.getAuthFields())) {
-            this.saveUserAuthFields(planDepositModel.getRepositoryId(), planDepositModel.getAuthFields());
+        if (this.conventionService.isNullOrEmpty(doi)) {
+            this.failDeposit(claim);
+            return null;
         }
 
-        //GK: doi is fine store it in database
-        EntityDoiPersist doiPersist = new EntityDoiPersist();
-        doiPersist.setRepositoryId(planDepositModel.getRepositoryId());
-        doiPersist.setDoi(doi);
-        doiPersist.setEntityId(planEntity.getId());
         EntityDoiMetadataEntity doiMetadata = new EntityDoiMetadataEntity();
         doiMetadata.setDepositMethod(planDepositModel.getDepositAuthInfoType());
         doiMetadata.setUserId(this.userScopeFactory.getInstance().getUserIdSafe());
@@ -466,6 +468,12 @@ public class DepositServiceImpl implements DepositService {
                 doiMetadata.setAccountName(account.getName());
             }
         }
+        EntityDoiEntity published = this.finishDeposit(claim, EntityDoiStatus.Published, doi, doiMetadata);
+
+        this.persistDepositMetadata(planEntity.getId(), planDepositModel.getRepositoryId(), planDepositModel.getStoredFields(), planDepositModel.getStoredGroups());
+        if (Boolean.TRUE.equals(planDepositModel.getSaveAuthFields()) && planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.AuthInfoFromUserProfile) && !this.conventionService.isListNullOrEmpty(planDepositModel.getAuthFields())) {
+            this.saveUserAuthFields(planDepositModel.getRepositoryId(), planDepositModel.getAuthFields());
+        }
         this.sendNotification(planEntity, planDepositModel.getRepositoryId());
         this.webhookService.enqueueEvent(WebhookEventType.PlanDeposited, Map.of(
                 "planId", planEntity.getId(),
@@ -476,7 +484,7 @@ public class DepositServiceImpl implements DepositService {
         this.accountingService.increase(UsageLimitTargetMetric.DEPOSIT_EXECUTION_COUNT.getValue());
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.DEPOSIT_EXECUTION_COUNT_FOR, planDepositModel.getRepositoryId());
 
-        entityDoiQuery = this.queryFactory.query(EntityDoiQuery.class).disableTracking().types(EntityType.Plan).entityIds(planEntity.getId()).isActive(IsActive.Active);
+        entityDoiQuery = this.queryFactory.query(EntityDoiQuery.class).disableTracking().types(EntityType.Plan).entityIds(planEntity.getId()).excludedIds(published.getId()).isActive(IsActive.Active);
         if (entityDoiQuery.count() == 0) {
             this.accountingService.increase(UsageLimitTargetMetric.PLAN_DOIED_COUNT.getValue());
             Long descriptionsCount = this.queryFactory.query(DescriptionQuery.class).authorize(AuthorizationFlags.AllExceptPublic).planIds(planEntity.getId()).isActive(IsActive.Active).count();
@@ -484,7 +492,78 @@ public class DepositServiceImpl implements DepositService {
                 this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_DOIED_COUNT.getValue());
             }
         }
-        return this.doiService.persist(doiPersist, doiMetadata, true, planDepositModel.getProject());
+        return this.builderFactory.builder(EntityDoiBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(planDepositModel.getProject(), EntityDoi._id), published);
+    }
+
+    private EntityDoiEntity pendingDeposit(UUID planId, String repositoryId) {
+        return this.queryFactory.query(EntityDoiQuery.class).disableTracking().types(EntityType.Plan).entityIds(planId).repositoryIds(repositoryId).statuses(EntityDoiStatus.Pending).isActive(IsActive.Active).first();
+    }
+
+    // a claim older than this is taken for a deposit that crashed, and the next attempt replaces it
+    private boolean isInProgress(EntityDoiEntity pending) {
+        return pending != null && pending.getCreatedAt().isAfter(Instant.now().minus(ABANDONED_DEPOSIT_AFTER));
+    }
+
+    // committed on its own before the repository is called, so a parallel deposit of the plan to the same repository sees it;
+    // the unique index on pending rows refuses the second of two claims made at the same moment
+    private EntityDoiEntity claimDeposit(UUID planId, String repositoryId) throws InvalidApplicationException {
+        TransactionStatus status = this.transactionManager.getTransaction(new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+        try {
+            EntityDoiEntity pending = this.pendingDeposit(planId, repositoryId);
+            if (this.isInProgress(pending)) throw new MyValidationException(this.errors.getDepositInProgress().getCode(), this.errors.getDepositInProgress().getMessage());
+            if (pending != null) {
+                pending.setStatus(EntityDoiStatus.Failed);
+                pending.setUpdatedAt(Instant.now());
+                this.tenantEntityManagerFactory.getInstance().merge(pending);
+            }
+
+            EntityDoiEntity claim = new EntityDoiEntity();
+            claim.setId(UUID.randomUUID());
+            claim.setEntityType(EntityType.Plan);
+            claim.setEntityId(planId);
+            claim.setRepositoryId(repositoryId);
+            claim.setStatus(EntityDoiStatus.Pending);
+            claim.setIsActive(IsActive.Active);
+            claim.setCreatedAt(Instant.now());
+            claim.setUpdatedAt(Instant.now());
+            this.tenantEntityManagerFactory.getInstance().persist(claim);
+            this.tenantEntityManagerFactory.getInstance().flush();
+            this.transactionManager.commit(status);
+            return claim;
+        } catch (PersistenceException e) {
+            this.transactionManager.rollback(status);
+            throw new MyValidationException(this.errors.getDepositInProgress().getCode(), this.errors.getDepositInProgress().getMessage());
+        } catch (RuntimeException | InvalidApplicationException e) {
+            if (!status.isCompleted()) this.transactionManager.rollback(status);
+            throw e;
+        }
+    }
+
+    // committed on its own as well, so the DOI the repository minted is kept even when a later step of the deposit fails
+    private EntityDoiEntity finishDeposit(EntityDoiEntity claim, EntityDoiStatus result, String doi, EntityDoiMetadataEntity metadata) throws InvalidApplicationException {
+        TransactionStatus status = this.transactionManager.getTransaction(new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+        try {
+            claim.setStatus(result);
+            claim.setDoi(doi);
+            if (metadata != null) claim.setMetadata(this.jsonHandlingService.toJsonSafe(metadata));
+            claim.setUpdatedAt(Instant.now());
+            EntityDoiEntity saved = this.tenantEntityManagerFactory.getInstance().merge(claim);
+            this.tenantEntityManagerFactory.getInstance().flush();
+            this.transactionManager.commit(status);
+            return saved;
+        } catch (RuntimeException | InvalidApplicationException e) {
+            if (!status.isCompleted()) this.transactionManager.rollback(status);
+            throw e;
+        }
+    }
+
+    // must not hide the deposit's own error: a claim left pending is replaced once it is abandoned
+    private void failDeposit(EntityDoiEntity claim) {
+        try {
+            this.finishDeposit(claim, EntityDoiStatus.Failed, null, null);
+        } catch (Exception e) {
+            log.error("could not mark the deposit of plan " + claim.getEntityId() + " to " + claim.getRepositoryId() + " as failed", e);
+        }
     }
 
     @Override

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class EvaluatorTenantConfigurationPersist {
 
@@ -23,6 +24,8 @@ public class EvaluatorTenantConfigurationPersist {
     public static final String _disableSystemSources = "disableSystemSources";
     private List<String> disabledSourceIds;
     public static final String _disabledSourceIds = "disabledSourceIds";
+    private List<EvaluatorRestrictionPersist> restrictions;
+    public static final String _restrictions = "restrictions";
 
     public List<EvaluatorSourcePersist> getSources() {
         return sources;
@@ -46,6 +49,14 @@ public class EvaluatorTenantConfigurationPersist {
 
     public void setDisabledSourceIds(List<String> disabledSourceIds) {
         this.disabledSourceIds = disabledSourceIds;
+    }
+
+    public List<EvaluatorRestrictionPersist> getRestrictions() {
+        return restrictions;
+    }
+
+    public void setRestrictions(List<EvaluatorRestrictionPersist> restrictions) {
+        this.restrictions = restrictions;
     }
 
     @Component(EvaluatorTenantConfigurationPersistValidator.ValidatorName)
@@ -77,7 +88,16 @@ public class EvaluatorTenantConfigurationPersist {
                             .iff(() -> !this.isListNullOrEmpty(item.getSources()))
                             .on(EvaluatorTenantConfigurationPersist._sources)
                             .over(item.getSources())
-                            .using((itm) -> this.validatorFactory.validator(EvaluatorSourcePersist.EvaluatorSourcePersistValidator.class))
+                            .using((itm) -> this.validatorFactory.validator(EvaluatorSourcePersist.EvaluatorSourcePersistValidator.class)),
+                    this.spec()
+                            .iff(() -> !this.isListNullOrEmpty(item.getRestrictions()))
+                            .must(() -> item.getRestrictions().stream().filter(Objects::nonNull).map(EvaluatorRestrictionPersist::getEvaluatorId).distinct().count() == item.getRestrictions().stream().filter(Objects::nonNull).count())
+                            .failOn(EvaluatorTenantConfigurationPersist._restrictions).failWith(messageSource.getMessage("Validation_Unique", new Object[]{EvaluatorTenantConfigurationPersist._restrictions}, LocaleContextHolder.getLocale())),
+                    this.navSpec()
+                            .iff(() -> !this.isListNullOrEmpty(item.getRestrictions()))
+                            .on(EvaluatorTenantConfigurationPersist._restrictions)
+                            .over(item.getRestrictions())
+                            .using((itm) -> this.validatorFactory.validator(EvaluatorRestrictionPersist.EvaluatorRestrictionPersistValidator.class))
 
 
             );

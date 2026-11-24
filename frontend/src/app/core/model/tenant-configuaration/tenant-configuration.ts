@@ -92,7 +92,15 @@ export interface EvaluatorTenantConfiguration{
 	/** Plugin ids (installation-provided or the tenant's own) switched off for this tenant. */
 	disabledSourceIds?: string[];
 	sources: EvaluatorSource[];
+	restrictions?: EvaluatorRestriction[];
 
+}
+
+/** An evaluator limited to these benchmarks and tests for the tenant; an evaluator without one offers all. */
+export interface EvaluatorRestriction{
+	evaluatorId: string;
+	benchmarkIds: string[];
+	testIds: string[];
 }
 
 export interface DepositSource{
@@ -225,6 +233,7 @@ export interface EvaluatorTenantConfigurationPersist{
 	/** Plugin ids (installation-provided or the tenant's own) switched off for this tenant. */
 	disabledSourceIds?: string[];
 	sources: EvaluatorSourcePersist[];
+	restrictions?: EvaluatorRestriction[];
 }
 
 export interface DepositSourcePersist{

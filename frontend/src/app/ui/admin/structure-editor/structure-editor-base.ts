@@ -273,7 +273,7 @@ export abstract class StructureEditorBase<M extends EditorModel, E extends Struc
 	persistEntity(onSuccess?: (response) => void): void {
 		this.saving = true;
 		const done = (complete) => { this.saving = false; if (onSuccess) onSuccess(complete); else this.onCallbackSuccess(complete); };
-		const fail = (error) => { this.saving = false; this.formGroup.get('status').setValue(this.editorModel.status ?? STATUS_DRAFT); this.onCallbackError(error); this.recomputeProblems(); };
+		const fail = (error) => { this.saving = false; this.formGroup.get('status').setValue(this.isNewVersion ? STATUS_DRAFT : this.editorModel.status ?? STATUS_DRAFT); this.onCallbackError(error); this.recomputeProblems(); };
 		const formData = JSON.parse(JSON.stringify(this.formGroup.value));
 		if (!this.isNewVersion) formData.code = this.formGroup.get('code').getRawValue();
 		this.persistRequest(formData, this.isNewVersion).pipe(takeUntil(this._destroyed)).subscribe({ next: done, error: fail });

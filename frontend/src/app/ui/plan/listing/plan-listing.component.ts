@@ -346,6 +346,12 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 	}
 
     filtersDialogOpen: boolean = false;
+	closeFilters(event?: Event): void {
+		// An open autocomplete marks its Escape as handled; that one only closes the options list.
+		if (!this.filtersDialogOpen || event?.defaultPrevented) return;
+		this.filtersDialogOpen = false;
+		document.getElementById('plan-listing-filters-toggle')?.focus();
+	}
 	toggleFilters(): void {
         this.filtersDialogOpen = !this.filtersDialogOpen;
 		// let dialogRef: MatDialogRef<PlanFilterDialogComponent, PlanListingFilters> = this.dialog.open(PlanFilterDialogComponent, {

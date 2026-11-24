@@ -27,10 +27,10 @@
                         @let hasDocumentActions = hasExportPermission || (hasEvaluatePermission && availableEvaluators?.length) || ((!hasDoi || moreDeposit) && inputRepos?.length && showDepositButton);
                         @let hasLifecycleActions = canClonePlan || hasNewVersionPermission || canDeletePlan;
                         @if (hasDocumentActions) {
-                            <span class="toolbar-sep" aria-hidden="true"></span>
+                            <span class="toolbar-sep toolbar-wide" aria-hidden="true"></span>
                         }
                         @if (hasExportPermission) {
-                            <span class="toolbar-tip" [matTooltip]="(isDirty ? 'PLAN-EDITOR.ACTIONS.EXPORT.CAN-NOT-EXPORT' : (exportStatusAllowed ? 'PLAN-EDITOR.ACTIONS.EXPORT.TOOLTIP' : 'PLAN-EDITOR.ACTIONS.EXPORT.STATUS-DISABLED')) | translate">
+                            <span class="toolbar-tip toolbar-wide" [matTooltip]="(isDirty ? 'PLAN-EDITOR.ACTIONS.EXPORT.CAN-NOT-EXPORT' : (exportStatusAllowed ? 'PLAN-EDITOR.ACTIONS.EXPORT.TOOLTIP' : 'PLAN-EDITOR.ACTIONS.EXPORT.STATUS-DISABLED')) | translate">
                                 <button mat-stroked-button type="button" class="toolbar-btn" data-tour="plan-editor-export" [matMenuTriggerFor]="exportMenu" [disabled]="isDirty || !exportStatusAllowed">
                                     <mat-icon class="material-symbols-outlined" aria-hidden="true">download</mat-icon>
                                     {{ 'PLAN-EDITOR.ACTIONS.EXPORT.EXPORT' | translate }}
@@ -39,7 +39,7 @@
                             </span>
                         }
                         @if (hasEvaluatePermission && availableEvaluators?.length) {
-                            <span class="toolbar-tip" [matTooltip]="(evaluateStatusAllowed ? 'PLAN-EDITOR.ACTIONS.EVALUATE-TOOLTIP' : 'PLAN-OVERVIEW.DISABLED-TOOLTIP.EVALUATION') | translate">
+                            <span class="toolbar-tip toolbar-wide" [matTooltip]="(evaluateStatusAllowed ? 'PLAN-EDITOR.ACTIONS.EVALUATE-TOOLTIP' : 'PLAN-OVERVIEW.DISABLED-TOOLTIP.EVALUATION') | translate">
                                 <button mat-stroked-button type="button" class="toolbar-btn" data-tour="plan-editor-evaluate" [matMenuTriggerFor]="evaluateMenu" [disabled]="!evaluateStatusAllowed">
                                     <mat-icon class="material-symbols-outlined" aria-hidden="true">science</mat-icon>
                                     {{ 'PLAN-OVERVIEW.ACTIONS.EVALUATE' | translate }}
@@ -59,16 +59,16 @@
                             ></app-plan-deposit-dropdown>
                         }
                         @if (hasLifecycleActions) {
-                            <span class="toolbar-sep" aria-hidden="true"></span>
+                            <span class="toolbar-sep toolbar-wide" aria-hidden="true"></span>
                         }
                         @if (canClonePlan) {
-                            <button type="button" class="toolbar-icon-btn" (click)="cloneClicked()"
+                            <button type="button" class="toolbar-icon-btn toolbar-wide" (click)="cloneClicked()"
                                 [matTooltip]="'PLAN-EDITOR.ACTIONS.DUPLICATE' | translate" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.DUPLICATE' | translate">
                                 <mat-icon class="material-symbols-outlined" aria-hidden="true">content_copy</mat-icon>
                             </button>
                         }
                         @if (hasNewVersionPermission) {
-                            <span class="toolbar-tip" [matTooltip]="(isCurrentVersion ? 'PLAN-EDITOR.ACTIONS.NEW-VERSION' : 'PLAN-OVERVIEW.DISABLED-TOOLTIP.NEW-VERSION') | translate">
+                            <span class="toolbar-tip toolbar-wide" [matTooltip]="(isCurrentVersion ? 'PLAN-EDITOR.ACTIONS.NEW-VERSION' : 'PLAN-OVERVIEW.DISABLED-TOOLTIP.NEW-VERSION') | translate">
                                 <button type="button" class="toolbar-icon-btn" (click)="newVersionClicked()" [disabled]="!isCurrentVersion"
                                     [attr.aria-label]="'PLAN-EDITOR.ACTIONS.NEW-VERSION' | translate">
                                     <mat-icon class="material-symbols-outlined" aria-hidden="true">fork_right</mat-icon>
@@ -76,10 +76,48 @@
                             </span>
                         }
                         @if (canDeletePlan) {
-                            <button type="button" class="toolbar-icon-btn toolbar-icon-btn--danger" (click)="delete()"
+                            <button type="button" class="toolbar-icon-btn toolbar-icon-btn--danger toolbar-wide" (click)="delete()"
                                 [matTooltip]="'PLAN-EDITOR.ACTIONS.DELETE' | translate" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.DELETE' | translate">
                                 <mat-icon class="material-symbols-outlined" aria-hidden="true">delete</mat-icon>
                             </button>
+                        }
+                        @if (hasExportPermission || (hasEvaluatePermission && availableEvaluators?.length) || hasLifecycleActions) {
+                            <button type="button" class="toolbar-icon-btn toolbar-narrow" [matMenuTriggerFor]="moreActionsMenu"
+                                [matTooltip]="'ALT-TEXT.MORE-ACTIONS' | translate" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
+                                <mat-icon class="material-symbols-outlined" aria-hidden="true">more_horiz</mat-icon>
+                            </button>
+                            <mat-menu #moreActionsMenu="matMenu" xPosition="before">
+                                @if (hasExportPermission) {
+                                    <button mat-menu-item type="button" [matMenuTriggerFor]="exportMenu" [disabled]="isDirty || !exportStatusAllowed">
+                                        <mat-icon class="material-symbols-outlined" aria-hidden="true">download</mat-icon>
+                                        {{ 'PLAN-EDITOR.ACTIONS.EXPORT.EXPORT' | translate }}
+                                    </button>
+                                }
+                                @if (hasEvaluatePermission && availableEvaluators?.length) {
+                                    <button mat-menu-item type="button" [matMenuTriggerFor]="evaluateMenu" [disabled]="!evaluateStatusAllowed">
+                                        <mat-icon class="material-symbols-outlined" aria-hidden="true">science</mat-icon>
+                                        {{ 'PLAN-OVERVIEW.ACTIONS.EVALUATE' | translate }}
+                                    </button>
+                                }
+                                @if (canClonePlan) {
+                                    <button mat-menu-item type="button" (click)="cloneClicked()">
+                                        <mat-icon class="material-symbols-outlined" aria-hidden="true">content_copy</mat-icon>
+                                        {{ 'PLAN-EDITOR.ACTIONS.DUPLICATE' | translate }}
+                                    </button>
+                                }
+                                @if (hasNewVersionPermission) {
+                                    <button mat-menu-item type="button" (click)="newVersionClicked()" [disabled]="!isCurrentVersion">
+                                        <mat-icon class="material-symbols-outlined" aria-hidden="true">fork_right</mat-icon>
+                                        {{ 'PLAN-EDITOR.ACTIONS.NEW-VERSION' | translate }}
+                                    </button>
+                                }
+                                @if (canDeletePlan) {
+                                    <button mat-menu-item type="button" (click)="delete()">
+                                        <mat-icon class="material-symbols-outlined" aria-hidden="true">delete</mat-icon>
+                                        {{ 'PLAN-EDITOR.ACTIONS.DELETE' | translate }}
+                                    </button>
+                                }
+                            </mat-menu>
                         }
                         <mat-menu #exportMenu="matMenu" xPosition="before">
                         @for(fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan); track $index; let i = $index) {
@@ -237,8 +275,17 @@
         }
         <!-- Second etc Steps -->
         <div class="editor-container">
+            <div class="toc-toggle-bar">
+                <button id="toc-toggle" mat-stroked-button type="button" (click)="tocDrawerOpen = !tocDrawerOpen" [attr.aria-expanded]="tocDrawerOpen" aria-controls="plan-toc">
+                    <mat-icon aria-hidden="true">toc</mat-icon>
+                    {{ 'PLAN-EDITOR.TABLE-OF-CONTENTS.TITLE' | translate }}
+                </button>
+            </div>
             <app-plan-table-of-contents
                 #tableOfContent
+                id="plan-toc"
+                [class.open]="tocDrawerOpen"
+                (keydown.escape)="closeTocDrawer()"
                 [plan]="item"
                 [formGroup]="formGroup"
                 [selectedBlueprint]="selectedBlueprint"
@@ -256,6 +303,9 @@
                 (showAnnotations)="showAnnotations($event)"
                 (onNavigate)="onNavigateToEntry($entry)"
             />
+            @if (tocDrawerOpen) {
+                <div class="toc-backdrop" aria-hidden="true" (click)="closeTocDrawer()"></div>
+            }
             @if (selectedBlueprint?.definition) {
                 <div class="form" id="editor-form"  tabindex="0">
                     <!-- FE-2: context band — names the active entity (plan section / description) + its state -->

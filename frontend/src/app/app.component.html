@@ -14,7 +14,10 @@
       <div class="alert alert-warning mb-0 rounded-0 test-installation-message"><strong>{{'TEST-INSTALLATION-MESSAGE.TITLE' | translate}}</strong> {{'TEST-INSTALLATION-MESSAGE.TEXT' | translate}}</div>
     }
     <div class="main-container">
-    <app-sidebar class="sidenav" [class.closed]="!sidenavService.isOpen()"></app-sidebar>
+    <app-sidebar class="sidenav" [class.closed]="!sidenavService.isOpen()" [class.overlay]="sidenavService.isOverlay()" (keydown.escape)="closeOverlaySidenav()"></app-sidebar>
+    @if (sidenavService.isOverlay() && sidenavService.isOpen()) {
+      <div class="sidenav-backdrop" aria-hidden="true" (click)="closeOverlaySidenav()"></div>
+    }
     <main id="main-page" tabindex="-1">
         @if (!authentication.appsNotAlreadyUserCreated()) {
         <router-outlet  (activate)='onActivate($event)' (deactivate)='onDeactivate($event)'></router-outlet>

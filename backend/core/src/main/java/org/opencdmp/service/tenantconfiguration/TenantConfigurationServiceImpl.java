@@ -265,6 +265,16 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         if (persist == null) return data;
         data.setDisableSystemSources(Boolean.TRUE.equals(persist.getDisableSystemSources()));
         data.setDisabledSourceIds(persist.getDisabledSourceIds() != null ? new ArrayList<>(persist.getDisabledSourceIds()) : new ArrayList<>());
+        data.setRestrictions(new ArrayList<>());
+        if (persist.getRestrictions() != null) {
+            for (EvaluatorRestrictionPersist restrictionPersist : persist.getRestrictions()) {
+                EvaluatorRestrictionEntity restriction = new EvaluatorRestrictionEntity();
+                restriction.setEvaluatorId(restrictionPersist.getEvaluatorId());
+                restriction.setBenchmarkIds(restrictionPersist.getBenchmarkIds() != null ? new ArrayList<>(restrictionPersist.getBenchmarkIds()) : new ArrayList<>());
+                restriction.setTestIds(restrictionPersist.getTestIds() != null ? new ArrayList<>(restrictionPersist.getTestIds()) : new ArrayList<>());
+                data.getRestrictions().add(restriction);
+            }
+        }
         data.setSources(new ArrayList<>());
         if (this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
         for (EvaluatorSourcePersist sourcePersist : persist.getSources()) {

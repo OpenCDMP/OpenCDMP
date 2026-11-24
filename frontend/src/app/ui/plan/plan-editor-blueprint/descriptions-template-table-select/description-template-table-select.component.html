@@ -38,7 +38,7 @@
             <thead>
             <tr>
                 <th scope="col">
-                <div role="button" (click)="sortChanged(ColumnName['name'])" class="table-header"
+                <div role="button" tabindex="0" (click)="sortChanged(ColumnName['name'])" (keydown.enter)="sortChanged(ColumnName['name'])" (keydown.space)="$event.preventDefault(); sortChanged(ColumnName['name'])" class="table-header"
                     [attr.aria-label]="(isSorted(ColumnName['name']) && sort.direction === SortDirection.Descending ? 'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING' : 'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING') | translate"
                     >
                     {{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.NAME' | translate}}
@@ -46,14 +46,16 @@
                 </div>
                 </th>
                 <th scope="col dropdown">
-                <div role="button" id="dropdownTypes" [matMenuTriggerFor]="allTypes ? dropdownTypesMenu : null" class="d-flex align-items-center table-header"
+                <div role="button" tabindex="0" id="dropdownTypes" [matMenuTriggerFor]="allTypes ? dropdownTypesMenu : null" #typesMenuTrigger="matMenuTrigger" (keydown.enter)="allTypes && typesMenuTrigger.openMenu()" (keydown.space)="$event.preventDefault(); allTypes && typesMenuTrigger.openMenu()" class="d-flex align-items-center table-header"
                     >
                     <span>{{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.TYPE' | translate}}</span>
                     <mat-icon  [matBadge]="1" [matBadgeHidden]="!selectedTypesIds" class="small-icon">filter_alt</mat-icon>
                 </div>
                 <mat-menu #dropdownTypesMenu="matMenu">
                     @if (allTypes) {
-                    <div class="p-3">
+                    <!-- Lazy, so the focus trap is created, and captures focus, each time the menu opens -->
+                    <ng-template matMenuContent>
+                    <div class="p-3" role="group" cdkTrapFocus cdkTrapFocusAutoCapture (keydown.tab)="$event.stopPropagation()" (keydown.shift.tab)="$event.stopPropagation()">
                         @if (selectedTypesIds) {
                         <div class="pb-1 text-right">
                             <button role="button" mat-button (click)="clearType()">{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.CLEAR' | translate}}</button>
@@ -76,18 +78,20 @@
                             </mat-form-field>
                         </form>
                         </div>
+                    </ng-template>
                     }
                     </mat-menu>
                 </th>
                 <th scope="col">
-                    <div id="dropdownLanguages" role="button" [matMenuTriggerFor]="dropdownLanguagesMenu"
+                    <div id="dropdownLanguages" role="button" tabindex="0" [matMenuTriggerFor]="dropdownLanguagesMenu" #languagesMenuTrigger="matMenuTrigger" (keydown.enter)="languagesMenuTrigger.openMenu()" (keydown.space)="$event.preventDefault(); languagesMenuTrigger.openMenu()"
                     class="table-header d-flex align-items-center"
                     >
                     <span>{{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.LANGUAGE' | translate}}</span>
                     <mat-icon [matBadge]="1" [matBadgeHidden]="!selectedLanguageCodes" class="small-icon">filter_alt</mat-icon>
                     </div>
                     <mat-menu #dropdownLanguagesMenu="matMenu">
-                    <div class="p-3">
+                    <ng-template matMenuContent>
+                    <div class="p-3" role="group" cdkTrapFocus cdkTrapFocusAutoCapture (keydown.tab)="$event.stopPropagation()" (keydown.shift.tab)="$event.stopPropagation()">
                         @if (selectedLanguageCodes) {
                         <div class="pb-1 text-right">
                             <button mat-button (click)="clearLanguage()" >{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.CLEAR' | translate}}</button>
@@ -110,10 +114,11 @@
                             </mat-form-field>
                         </form>
                         </div>
+                    </ng-template>
                     </mat-menu>
                     </th>
                     <th scope="col">
-                    <div role="button" class="table-header" (click)="sortChanged(ColumnName['updatedAt'])"
+                    <div role="button" tabindex="0" class="table-header" (click)="sortChanged(ColumnName['updatedAt'])" (keydown.enter)="sortChanged(ColumnName['updatedAt'])" (keydown.space)="$event.preventDefault(); sortChanged(ColumnName['updatedAt'])"
                         [attr.aria-label]="(isSorted(ColumnName['updatedAt']) && sort.direction === SortDirection.Descending ? 'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING' : 'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING') | translate"
                         >
                         {{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.UPDATED-AT' | translate}}

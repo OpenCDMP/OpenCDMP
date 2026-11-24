@@ -16,6 +16,7 @@
   
     .info {
         flex: 2;
+        min-width: 10rem;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -211,6 +212,32 @@
                 border-bottom-left-radius: 0;
             }
         }
+        .toolbar-narrow {
+            display: none;
+        }
+    }
+    // Same breakpoint as the app sidebar overlay (SideNavService).
+    @media (max-width: 991px) {
+        padding: 0.5rem 1rem;
+        .editor-toolbar {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .info {
+            flex: 1 1 100%;
+        }
+        .extra-info {
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+        .action-btns {
+            .toolbar-wide, .toolbar-sep {
+                display: none;
+            }
+            .toolbar-narrow {
+                display: inline-flex;
+            }
+        }
     }
 }
 
@@ -260,6 +287,42 @@
     app-plan-table-of-contents{
         height: 100%;
         overflow: hidden;
+    }
+}
+.toc-toggle-bar, .toc-backdrop {
+    display: none;
+}
+
+// Same breakpoint as the app sidebar overlay (SideNavService).
+@media (max-width: 991px) {
+    .editor-container {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        app-plan-table-of-contents, .form, .toc-backdrop {
+            grid-row: 2;
+            grid-column: 1;
+        }
+        app-plan-table-of-contents {
+            z-index: 5;
+            width: min(22rem, 100%);
+            background-color: var(--mat-sys-surface);
+            border-right: 1px solid var(--mat-sys-outline-variant);
+            // display, not visibility: expanded Material panels set visibility: visible and showed through.
+            display: none;
+            &.open {
+                display: block;
+            }
+        }
+    }
+    .toc-toggle-bar {
+        display: flex;
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
+    }
+    .toc-backdrop {
+        display: block;
+        z-index: 4;
+        background: #00000014;
     }
 }
 
@@ -601,6 +664,23 @@ a:hover {
     border-left: 1px solid var(--mat-sys-outline-variant);
     &.plan-annotations--hidden{
         display: none;
+    }
+}
+// Below this width an inline 450px panel leaves the form under ~500px, so it floats over the form instead.
+@media (max-width: 1399px) {
+    .editor-panels {
+        position: relative;
+    }
+    .plan-annotations {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        min-width: 0;
+        width: min(450px, 100%);
+        background-color: var(--mat-sys-surface);
+        box-shadow: -3px 0 6px #00000029;
     }
 }
 .slide-in {

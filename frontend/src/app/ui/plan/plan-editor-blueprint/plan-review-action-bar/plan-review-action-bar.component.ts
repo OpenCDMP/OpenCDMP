@@ -215,7 +215,7 @@ export class PlanReviewActionBarComponent implements OnChanges {
 	readonly acceptedRows = computed(() => this.overviewRows().filter(r => r.state === 'accepted'));
 	readonly rejectedRows = computed(() => this.overviewRows().filter(r => r.state === 'rejected'));
 
-	scrollToRow(row: OverviewRow): void {
+	scrollToRow(row: OverviewRow, moveFocus: boolean = false): void {
 		if (!row.anchorElementId) return;
 		// Plan-level fields have [id]="field.id" anchors. Description-level rows are not
 		// individually addressable today (the form-field component doesn't render a unique id
@@ -223,6 +223,10 @@ export class PlanReviewActionBarComponent implements OnChanges {
 		const target = document.getElementById(row.anchorElementId);
 		if (target) {
 			target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			// From the keyboard a scroll alone leaves focus in the panel, so move it to the field
+			if (moveFocus) {
+				target.querySelector<HTMLElement>('input, textarea, select, button, [contenteditable="true"], [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true });
+			}
 		}
 	}
 

@@ -2134,8 +2134,17 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
     }
 
     //*** TABLE OF CONTENTS */
+    tocDrawerOpen = false;
+
     onNavigateToEntry(entry: ToCEntry){
         this.closeNewDescriptionPanel()
+        this.tocDrawerOpen = false;
+    }
+
+    closeTocDrawer(): void {
+        if (!this.tocDrawerOpen) return;
+        this.tocDrawerOpen = false;
+        document.getElementById('toc-toggle')?.focus();
     }
 
     // ***   PLAN COLLABORATORS EDITOR    ***

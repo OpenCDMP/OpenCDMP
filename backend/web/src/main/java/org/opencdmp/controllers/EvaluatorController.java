@@ -66,11 +66,15 @@ public class EvaluatorController {
                             )))
             ),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
-    public List<EvaluatorConfiguration> getAvailableConfigurations() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        logger.debug(new MapLogEntry("getAvailableConfigurations"));
+    public List<EvaluatorConfiguration> getAvailableConfigurations(
+            @Parameter(name = "unrestricted", description = "Every benchmark and test of each evaluator, ignoring the tenant's restrictions. Requires the permission to edit the tenant configuration") @RequestParam(value = "unrestricted", required = false) Boolean unrestricted
+    ) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        logger.debug(new MapLogEntry("getAvailableConfigurations").And("unrestricted", unrestricted));
 
-        List<EvaluatorConfiguration> model = this.evaluatorService.getAvailableEvaluators();
-        this.auditService.track(AuditableAction.Evaluator_GetAvailableConfigurations);
+        List<EvaluatorConfiguration> model = this.evaluatorService.getAvailableEvaluators(Boolean.TRUE.equals(unrestricted));
+        this.auditService.track(AuditableAction.Evaluator_GetAvailableConfigurations, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("unrestricted", Boolean.TRUE.equals(unrestricted))
+        ));
 
         return model;
     }

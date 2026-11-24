@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "učitavanje...",
-			"NO-ITEMS": "Nema rezultata!"
+			"NO-ITEMS": "Nema rezultata!",
+			"OPTION-ACTION-HINT": "Pritisnite Ctrl+Enter da biste videli detalje istaknute opcije"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Unesite tekst"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Polje se odnosi na plan koji ne postoji u ovoj instalaciji (id: {{id}}). Uklonite tu vrednost.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Polje se odnosi na resurs koji ne postoji u ovoj instalaciji (id: {{id}}). Uklonite tu vrednost.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Ne možete sami sebi oduzeti administratorsku ulogu.",
-			"LAST-TENANT-ADMIN": "Organizaciji je potreban bar jedan administrator organizacije. Najpre nekog drugog postavite za administratora organizacije."
+			"LAST-TENANT-ADMIN": "Organizaciji je potreban bar jedan administrator organizacije. Najpre nekog drugog postavite za administratora organizacije.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Ovaj šablon resursa ne može da se obriše jer ga koriste resursi."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Oprez!",
@@ -596,6 +598,8 @@
 			"NEW": "Novo",
 			"CREATE": "Kreiraj",
 			"TEST": "Testiraj",
+			"CLEAR": "Obriši",
+			"VIEW-DETAILS": "Prikaži detalje",
 			"BOOLEAN": {
 				"YES": "Da",
 				"NO": "Ne"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Veza",
 				"CONNECTION-TENANT": "Gde plugin radi i kako se platforma prijavljuje na njega.",
 				"CONNECTION-INSTALLATION": "Ovaj plugin obezbeđuje instalacija, koja upravlja njegovom vezom. I dalje možete proveriti da li odgovara.",
+				"BENCHMARKS": "Merila",
+				"BENCHMARKS-HINT": "Koja merila i testove ovog evaluatora vaši korisnici mogu da pokreću.",
 				"REMOVE": "Ukloni plugin",
 				"REMOVE-CONFIRM": "Ukloniti {{name}}? Vaši korisnici ga više neće videti. Ovim se čuvaju i sve ostale nesačuvane izmene na ovoj stranici."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Ponudi sva merila i testove",
+				"BENCHMARKS": "Merila",
+				"TESTS": "Testovi",
+				"NO-BENCHMARKS": "Ovaj evaluator ne nudi merila.",
+				"NO-TESTS": "Ovaj evaluator ne nudi testove.",
+				"UNAVAILABLE": "Merila i testovi se pojavljuju kada je evaluator uključen, sačuvan i odgovara."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Dostupna je nova verzija blueprint-a kojim ste kreirali ovaj plan. Možete je koristiti kreiranjem nove verzije plana.",
 		"PID-FINALIZE-MESSAGE": "Morate finalizovati plan pre nego što ga deponujete.",
 		"PID-PUBLISH-MESSAGE": "Objavite plan u repozitorijumu da biste dobili DOI.",
+		"PUBLISHING": "Objavljuje se u {{repository}} od {{time}}.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Priložen fajl. Prijavite se za pregled",
 		"COLLABORATORS": "Saradnici",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Dodajte bar jednu opciju",
 			"INPUT-UPLOAD-TYPES": "Izaberite dozvoljene tipove datoteka",
 			"INPUT-INVALID": "Podešavanje unosa nije važeće",
+			"RULE-TARGET-MISSING": "Pravilo prikazuje pitanje koje više ne postoji",
 			"REPEATABLE": "Podešavanja ponavljanja nisu važeća.",
 			"QUESTIONS-OK": "Svako pitanje ima naslov i bar jedan unos.",
 			"NO-ICON": "Ikona nije podešena. Autori će videti podrazumevanu.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Pitanje koje se prikazuje",
 			"PICK-TARGET": "Izaberite pitanje",
 			"TARGET-REQUIRED": "Izaberite pitanje koje se prikazuje.",
+			"TARGET-MISSING": "Pitanje koje je ovo pravilo prikazivalo više ne postoji. Izaberite drugo.",
 			"QUESTIONS": "Pitanja",
 			"INPUTS": "Pojedinačni unosi",
+			"SECTIONS": "Sekcije",
 			"REMOVE": "Ukloni pravilo",
 			"YES": "Da",
 			"NO": "Ne",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Dodaj kontakt",
 			"SEARCH-CONTACT": "Pretraži kontakt",
 			"REMOVE-USER": "Ukloni korisnika",
+			"ADD-USER": "Dodaj korisnika",
 			"SAVE-AND-CLOSE": "Sačuvaj i zatvori",
 			"SAVE-AND-CONTINUE": "Sačuvaj i nastavi",
 			"REVERSE": "Poništi finalizaciju",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Ukloni korisnika",
+			"ADD-USER": "Dodaj korisnika",
 			"INVITE": "Pozovi"
 		},
 		"USERS-REQUIRED": "Potreban je najmanje jedan korisnik",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Подразумевано",
 		"DEFAULT-OPTION-WITH-VALUE": "Подразумевано ({{value}})",
 		"DEFAULT-VALUE-HINT": "Подразумевано: {{value}}",
+		"SHOW-VALUE": "Prikaži {{field}}",
+		"HIDE-VALUE": "Sakrij {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Docx šablon plana",

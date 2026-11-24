@@ -25,7 +25,7 @@
 							<span class="hp-row__text">
 								<span class="hp-page">{{ row.name }}</span>
 								<a class="hp-open" [routerLink]="row.url" target="_blank" rel="noopener">
-									{{ 'HELP-PAGES.OPEN-PAGE' | translate }}
+									{{ 'HELP-PAGES.OPEN-PAGE' | translate }}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span>
 									<mat-icon aria-hidden="true">open_in_new</mat-icon>
 								</a>
 							</span>
@@ -81,7 +81,7 @@
 				<span></span>
 			}
 			<div class="hp-actions__main">
-				<a mat-stroked-button [routerLink]="cell.row.url" target="_blank" rel="noopener">{{ 'HELP-PAGES.ACTIONS.PREVIEW' | translate }}</a>
+				<a mat-stroked-button [routerLink]="cell.row.url" target="_blank" rel="noopener">{{ 'HELP-PAGES.ACTIONS.PREVIEW' | translate }}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span></a>
 				@if (canEdit && editing()) {
 					<button mat-flat-button color="primary" type="button" [disabled]="busy() || !dirty()" (click)="save()">{{ 'HELP-PAGES.ACTIONS.SAVE' | translate }}</button>
 				}

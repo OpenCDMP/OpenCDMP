@@ -342,6 +342,10 @@ public final class SwaggerHelpers {
 
         public static final String dois_description = "<li>This is a list and determines which records we want to include in the response, based on their doi string. <br/>If not present, every record is included. </li>";
 
+        public static final String entityIds_description = "<li>This is a list and contains the ids of the plans whose records we want to include in the response. <br/>If not present, every record is included. </li>";
+
+        public static final String statuses_description = "<li>This is a list and determines which records we want to include in the response, based on their status: 0 for a deposit in progress, 1 for a published DOI and 2 for a failed deposit. <br/>If not present, only published DOIs are included. </li>";
+
     }
 
     public static final class Deposit {

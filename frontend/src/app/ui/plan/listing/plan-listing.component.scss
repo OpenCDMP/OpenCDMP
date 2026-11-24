@@ -131,8 +131,33 @@
         &.open {
             overflow-x: auto;
             width: 400px;
+            border-left: 1px solid var(--mat-sys-outline-variant);
         }
-        border-left: 1px solid var(--mat-sys-outline-variant);
+    }
+}
+.listing-filters-backdrop {
+    display: none;
+}
+// Same breakpoint as the app sidebar overlay (SideNavService): the filters float over the list instead of squeezing it.
+@media (max-width: 991px) {
+    .plan-listing {
+        position: relative;
+        .listing-filters {
+            position: absolute;
+            right: 0;
+            z-index: 5;
+            &.open {
+                width: min(400px, 100%);
+                box-shadow: -3px 0 6px #00000029;
+            }
+        }
+    }
+    .listing-filters-backdrop {
+        display: block;
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        background: #00000014;
     }
 }
 .search-form {

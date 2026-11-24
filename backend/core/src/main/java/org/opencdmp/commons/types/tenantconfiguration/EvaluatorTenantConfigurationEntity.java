@@ -10,6 +10,8 @@ public class EvaluatorTenantConfigurationEntity {
     private boolean disableSystemSources;
     /** Sources (installation-provided or the tenant's own) switched off for this tenant, by plugin id. */
     private List<String> disabledSourceIds;
+    /** Evaluators limited to some of their benchmarks and tests for this tenant; an evaluator without an entry offers all. */
+    private List<EvaluatorRestrictionEntity> restrictions;
 
     public List<EvaluatorSourceEntity> getSources() {
         return sources;
@@ -31,5 +33,13 @@ public class EvaluatorTenantConfigurationEntity {
 
     public void setDisabledSourceIds(List<String> disabledSourceIds) {
         this.disabledSourceIds = disabledSourceIds;
+    }
+
+    public List<EvaluatorRestrictionEntity> getRestrictions() {
+        return restrictions;
+    }
+
+    public void setRestrictions(List<EvaluatorRestrictionEntity> restrictions) {
+        this.restrictions = restrictions;
     }
 }

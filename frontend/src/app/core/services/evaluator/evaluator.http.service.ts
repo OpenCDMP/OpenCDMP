@@ -8,6 +8,7 @@ import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { EvaluatorFormat } from '@app/core/model/evaluator/evaluator-format.model';
 import { RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
+import { EvaluatorConfiguration } from '@app/core/model/evaluator/evaluator-configuration';
 
 
 @Injectable()
@@ -25,6 +26,11 @@ export class EvaluatorHttpService extends BaseService {
 	getAvailableConfigurations(): Observable<EvaluatorFormat[]> {
 		const url = `${this.apiBase}/available`;
 		return this.http.get<EvaluatorFormat[]>(url).pipe(catchError((error: any) => throwError(error)));
+	}
+
+	getUnrestrictedConfigurations(): Observable<EvaluatorConfiguration[]> {
+		const url = `${this.apiBase}/available`;
+		return this.http.get<EvaluatorConfiguration[]>(url, { params: { unrestricted: true } }).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	rankPlan(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = [], testIds: string[] = []): Observable<HttpResponse<RankResultModel[]>> {

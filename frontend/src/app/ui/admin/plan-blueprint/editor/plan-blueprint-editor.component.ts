@@ -168,7 +168,10 @@ export class PlanBlueprintEditorComponent extends StructureEditorBase<PlanBluepr
 	buildForm() {
 		this.formGroup = this.editorModel.buildForm(this._destroyed, null, this.readOnly, (this.isNew || this.isClone));
 		this.planBlueprintEditorService.setValidationErrorModel(this.editorModel.validationErrorModel);
-		if (this.isNewVersion) this.formGroup.get('code').disable();
+		if (this.isNewVersion) {
+			this.formGroup.get('code').disable();
+			this.formGroup.get('status').setValue(PlanBlueprintStatus.Draft);
+		}
 		this.applyConsentValidator(this.formGroup.controls.definition.get('planCreationConsent').get('enabled').value);
 	}
 

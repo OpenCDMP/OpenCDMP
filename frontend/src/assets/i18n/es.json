@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "cargando...",
-			"NO-ITEMS": "¡No se encontraron resultados!"
+			"NO-ITEMS": "¡No se encontraron resultados!",
+			"OPTION-ACTION-HINT": "Pulse Ctrl+Intro para ver los detalles de la opción resaltada"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Introducir texto"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Un campo hace referencia a un PGD que no existe en esta instalación (id: {{id}}). Elimine ese valor.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Un campo hace referencia a un recurso que no existe en esta instalación (id: {{id}}). Elimine ese valor.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "No puede quitarse a sí mismo un rol de administrador.",
-			"LAST-TENANT-ADMIN": "Una organización necesita al menos un administrador de la organización. Nombre antes a otra persona administradora de la organización."
+			"LAST-TENANT-ADMIN": "Una organización necesita al menos un administrador de la organización. Nombre antes a otra persona administradora de la organización.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Esta plantilla de recurso no se puede borrar porque hay recursos que la usan."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Atención!",
@@ -596,6 +598,8 @@
 			"NEW": "Nuevo",
 			"CREATE": "Crear",
 			"TEST": "Probar",
+			"CLEAR": "Limpiar",
+			"VIEW-DETAILS": "Ver detalles",
 			"BOOLEAN": {
 				"YES": "Sí",
 				"NO": "No"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Conexión",
 				"CONNECTION-TENANT": "Dónde se ejecuta el plugin y cómo accede a él la plataforma.",
 				"CONNECTION-INSTALLATION": "Este plugin lo proporciona la instalación, que gestiona su conexión. Aun así, puede comprobar que responde.",
+				"BENCHMARKS": "Benchmarks",
+				"BENCHMARKS-HINT": "Qué benchmarks y pruebas de este evaluador pueden ejecutar sus usuarios.",
 				"REMOVE": "Quitar plugin",
 				"REMOVE-CONFIRM": "¿Quitar {{name}}? Sus usuarios dejarán de verlo. Esto también guarda cualquier otro cambio sin guardar de esta página."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Ofrecer todos los benchmarks y pruebas",
+				"BENCHMARKS": "Benchmarks",
+				"TESTS": "Pruebas",
+				"NO-BENCHMARKS": "Este evaluador no ofrece benchmarks.",
+				"NO-TESTS": "Este evaluador no ofrece pruebas.",
+				"UNAVAILABLE": "Los benchmarks y las pruebas aparecen cuando el evaluador está activado, guardado y responde."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Hay una nueva versión del Blueprint que usó para crear este PGD. Puede usarla creando una nueva versión del PGD.",
 		"PID-FINALIZE-MESSAGE": "Debe finalizar el PGD antes de depositarlo.",
 		"PID-PUBLISH-MESSAGE": "Publique el plan en un repositorio para obtener un DOI.",
+		"PUBLISHING": "Publicándose en {{repository}} desde {{time}}.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Archivo adjunto. Inicie sesión para previsualizar",
 		"COLLABORATORS": "Colaboradores",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Añada al menos una opción",
 			"INPUT-UPLOAD-TYPES": "Elija los tipos de archivo permitidos",
 			"INPUT-INVALID": "Un ajuste de la entrada no es válido",
+			"RULE-TARGET-MISSING": "Una regla muestra una pregunta que ya no existe",
 			"REPEATABLE": "Los ajustes de repetición no son válidos.",
 			"QUESTIONS-OK": "Cada pregunta tiene título y al menos una entrada.",
 			"NO-ICON": "Sin icono. Los autores verán el predeterminado.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Pregunta que se muestra",
 			"PICK-TARGET": "Elegir una pregunta",
 			"TARGET-REQUIRED": "Elija la pregunta que se mostrará.",
+			"TARGET-MISSING": "La pregunta que mostraba esta regla ya no existe. Elija otra.",
 			"QUESTIONS": "Preguntas",
 			"INPUTS": "Entradas individuales",
+			"SECTIONS": "Secciones",
 			"REMOVE": "Quitar regla",
 			"YES": "Sí",
 			"NO": "No",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Añadir Contacto",
 			"SEARCH-CONTACT": "Buscar Contacto",
 			"REMOVE-USER": "Quitar Usuario",
+			"ADD-USER": "Añadir usuario",
 			"SAVE-AND-CLOSE": "Guardar y Cerrar",
 			"SAVE-AND-CONTINUE": "Guardar y Continuar",
 			"REVERSE": "Deshacer Finalización",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Quitar Usuario",
+			"ADD-USER": "Añadir usuario",
 			"INVITE": "Invitar"
 		},
 		"USERS-REQUIRED": "Se requiere al menos un usuario",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Predeterminado",
 		"DEFAULT-OPTION-WITH-VALUE": "Predeterminado ({{value}})",
 		"DEFAULT-VALUE-HINT": "Predeterminado: {{value}}",
+		"SHOW-VALUE": "Mostrar {{field}}",
+		"HIDE-VALUE": "Ocultar {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Plantilla Docx del PGD",

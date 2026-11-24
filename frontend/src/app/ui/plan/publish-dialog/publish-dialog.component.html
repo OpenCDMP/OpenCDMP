@@ -202,7 +202,7 @@
 			@case ('done') {
 				<button mat-button type="button" (click)="close()">{{ 'PUBLISH-DIALOG.ACTIONS.DONE' | translate }}</button>
 				@if (recordUrl(); as url) {
-					<a mat-flat-button color="primary" [href]="url" target="_blank" rel="noopener">{{ 'PUBLISH-DIALOG.DONE.OPEN' | translate: { repository: repositoryLabel } }}<mat-icon iconPositionEnd aria-hidden="true">open_in_new</mat-icon></a>
+					<a mat-flat-button color="primary" [href]="url" target="_blank" rel="noopener">{{ 'PUBLISH-DIALOG.DONE.OPEN' | translate: { repository: repositoryLabel } }}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span><mat-icon iconPositionEnd aria-hidden="true">open_in_new</mat-icon></a>
 				}
 			}
 			@case ('review-failed') {

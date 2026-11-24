@@ -5,11 +5,11 @@ import org.opencdmp.commons.enums.ContactInfoType;
 
 public class ContactPair {
 	private ContactInfoType type;
-	private String Contact;
+	private String contact;
 
 	public ContactPair(ContactInfoType type, String contact) {
 		this.type = type;
-		Contact = contact;
+		this.contact = contact;
 	}
 
 	public ContactPair() {
@@ -24,10 +24,10 @@ public class ContactPair {
 	}
 
 	public String getContact() {
-		return Contact;
+		return contact;
 	}
 
 	public void setContact(String contact) {
-		Contact = contact;
+		this.contact = contact;
 	}
 }

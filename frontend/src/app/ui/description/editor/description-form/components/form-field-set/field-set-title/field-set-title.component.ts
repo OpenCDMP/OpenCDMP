@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy, ElementRef, Injector, ViewChild, afterNextRender } from '@angular/core';
 import { BaseFieldSet } from '@app/core/model/description-template/description-template';
 import { FormFocusDirective } from '../../../../../../../../common/forms/form-focus.directive';
 import { MatIcon } from '@angular/material/icon';
@@ -25,14 +25,22 @@ export class FormFieldSetTitleComponent implements OnInit {
 	@Input() required: boolean = false;
 	@Output() copyLinkEvent: EventEmitter<any> = new EventEmitter<any>(); 
 
+	@ViewChild('extendedToggle') extendedToggle: ElementRef<HTMLElement>;
+
 	public showExtendedDescription: boolean = false;
 
-	constructor() { }
+	constructor(private injector: Injector) { }
 
 	ngOnInit() {
 	}
 
 	copyLink(): void {
 		this.copyLinkEvent.next(true);
+	}
+
+	toggleExtendedDescription(): void {
+		this.showExtendedDescription = !this.showExtendedDescription;
+		// "View more" and "View less" are different elements, so focus would otherwise drop to the page
+		afterNextRender(() => this.extendedToggle?.nativeElement.focus(), { injector: this.injector });
 	}
 }

@@ -313,6 +313,12 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 	}
 
     filtersDialogOpen: boolean = false;
+    closeFilters(event?: Event): void {
+        // An open autocomplete marks its Escape as handled; that one only closes the options list.
+        if (!this.filtersDialogOpen || event?.defaultPrevented) return;
+        this.filtersDialogOpen = false;
+        document.getElementById('description-listing-filters-toggle')?.focus();
+    }
     toggleFilters(): void {
         this.filtersDialogOpen = !this.filtersDialogOpen;
         // let dialogRef: MatDialogRef<DescriptionFilterDialogComponent, DescriptionListingFilters> = this.dialog.open(DescriptionFilterDialogComponent, {

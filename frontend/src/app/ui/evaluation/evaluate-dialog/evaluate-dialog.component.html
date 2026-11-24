@@ -78,7 +78,7 @@
           @if (targetUrl) {
             <!-- New tab, so following the link does not throw away the report behind it. -->
             <a class="rank-result-target-link" [href]="targetUrl" target="_blank" rel="noopener"
-              [attr.aria-label]="('PLAN-EVALUATE-DIALOG.OPEN-TARGET' | translate) + ': ' + targetLabel">
+              [attr.aria-label]="('PLAN-EVALUATE-DIALOG.OPEN-TARGET' | translate) + ': ' + targetLabel + ' (' + ('ALT-TEXT.OPENS-IN-NEW-TAB' | translate) + ')'">
               <mat-icon aria-hidden="true">open_in_new</mat-icon>
               <span>{{ 'PLAN-EVALUATE-DIALOG.OPEN-TARGET' | translate }}</span>
             </a>

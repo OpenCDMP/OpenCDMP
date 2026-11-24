@@ -42,9 +42,18 @@
 							}
 						</mat-optgroup>
 					}
+					@if (sectionTargets.length) {
+						<mat-optgroup [label]="'PLAN-BLUEPRINT-EDITOR.RULES.SECTIONS' | translate">
+							@for (t of sectionTargets; track t.id) {
+								<mat-option [value]="t.id"><span class="re-opt">{{t.label}}</span></mat-option>
+							}
+						</mat-optgroup>
+					}
 				</mat-select>
 				@if (showErrors && rule.get('target').hasError('required')) { <mat-error>{{'PLAN-BLUEPRINT-EDITOR.RULES.TARGET-REQUIRED' | translate}}</mat-error> }
 				@if (rule.get('target').hasError('backendError')) { <mat-error>{{rule.get('target').getError('backendError').message}}</mat-error> }
+				<!-- a hint, not a mat-error: the control is valid (it holds an id), so a mat-error would never show -->
+				@if (targetMissing(rule)) { <mat-hint class="re-missing">{{'PLAN-BLUEPRINT-EDITOR.RULES.TARGET-MISSING' | translate}}</mat-hint> }
 			</mat-form-field>
 
 			@if (!readOnly) {

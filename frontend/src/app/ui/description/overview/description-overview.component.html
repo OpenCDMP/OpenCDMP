@@ -39,7 +39,7 @@
                     <div class="description">
                         <span class="desc-txt" id="description-text" [innerHTML]="showLongDescription() ? description.description : minimizedDescription"></span>
                         @if(minimizedDescription?.length){
-                        <div class="link-color d-flex justify-content-center show-more" role="button" (click)="toggleShowDescription()">
+                        <div class="link-color d-flex justify-content-center show-more" role="button" tabindex="0" [attr.aria-expanded]="showLongDescription()" (click)="toggleShowDescription()" (keydown.enter)="toggleShowDescription()" (keydown.space)="$event.preventDefault(); toggleShowDescription()">
                             {{(!showLongDescription() ? 'GENERAL.ACTIONS.SHOW-MORE' : 'GENERAL.ACTIONS.SHOW-LESS') | translate | lowercase}}
                         </div>
                         }
@@ -131,9 +131,9 @@
                     <mat-card-content>
                         <mat-card  appearance="outlined">
                             <mat-card-content class="p-0">
-                                <a class="w-100 plan-btn" data-tour="description-overview-plan"
+                                <a class="w-100 plan-btn" data-tour="description-overview-plan" rel="noopener"
                                     [routerLink]="planRoute(description.plan)"
-                                    aria-label="{{('ALT-TEXT.OPEN-PLAN-OVERVIEW-FOR' | translate) + ' ' + description.plan.label}}"
+                                    aria-label="{{('ALT-TEXT.OPEN-PLAN-OVERVIEW-FOR' | translate) + ' ' + description.plan.label + ' (' + ('ALT-TEXT.OPENS-IN-NEW-TAB' | translate) + ')'}}"
                                     target="_blank"
                                 >
                                     <span class="plan-chip">{{ 'PLAN-OVERVIEW.TITLE' | translate }}</span>

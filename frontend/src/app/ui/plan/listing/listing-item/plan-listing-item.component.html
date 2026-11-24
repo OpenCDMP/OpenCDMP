@@ -99,7 +99,7 @@
                             @for (entityDoi of plan.entityDois; track entityDoi; let last = $last) {
                                 @let href = createDoiLink(entityDoi);
                                 @if(href){
-                                    <a class="plan-subtitle opacity-1" (click)="$event.stopPropagation()" [href]="createDoiLink(entityDoi)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="('PLAN-OVERVIEW.ACTIONS.VISIT-WEBSITE' | translate) + ' ' + entityDoi.doi">
+                                    <a class="plan-subtitle opacity-1" (click)="$event.stopPropagation()" [href]="createDoiLink(entityDoi)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="('PLAN-OVERVIEW.ACTIONS.VISIT-WEBSITE' | translate) + ' ' + entityDoi.doi + ' (' + ('ALT-TEXT.OPENS-IN-NEW-TAB' | translate) + ')'">
                                         {{ entityDoi.doi }}
                                     </a>
                                 }@else {
@@ -255,7 +255,7 @@
   }
   @if (showAllVersionsAction) {
     <a mat-menu-item [routerLink]="viewVersionsUrl(plan)" target="_blank" rel="noopener noreferrer">
-      <mat-icon aria-hidden="true">library_books</mat-icon>{{'PLAN-LISTING.ACTIONS.VIEW-VERSION' | translate}}
+      <mat-icon aria-hidden="true">library_books</mat-icon>{{'PLAN-LISTING.ACTIONS.VIEW-VERSION' | translate}}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span>
     </a>
   }
 </mat-menu>

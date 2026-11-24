@@ -88,7 +88,7 @@ export class SidebarComponent implements OnInit {
 		private uiStatisticsService: UIStatisticsService,
 	) {
 		this.router.events.subscribe(() => {
-			if (window.innerWidth <= 500) {
+			if (this.sidenavService.isOverlay()) {
 				this.sidenavService.setStatus(false);
 			}
 		});

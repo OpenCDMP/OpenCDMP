@@ -16,3 +16,14 @@
   margin-left: 9rem;
   margin-right: 11rem;
 }
+
+@media (max-width: 768px) {
+	.unlink-account-title {
+		padding-left: 1rem;
+	}
+
+	.unlink-account-content {
+		margin-left: 0;
+		margin-right: 0;
+	}
+}

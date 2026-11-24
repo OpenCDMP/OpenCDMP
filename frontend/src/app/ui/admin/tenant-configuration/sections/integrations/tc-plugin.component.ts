@@ -4,7 +4,10 @@ import { AbstractControl, ReactiveFormsModule, UntypedFormArray, UntypedFormCont
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
+import { EvaluatorConfiguration } from '@app/core/model/evaluator/evaluator-configuration';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import { EvaluatorHttpService } from '@app/core/services/evaluator/evaluator.http.service';
+import { EvaluatorService } from '@app/core/services/evaluator/evaluator.service';
 import { FileTransformerService } from '@app/core/services/file-transformer/file-transformer.service';
 import { PluginConnectionTestResult, PluginIntegrationService } from '@app/core/services/plugin-integration/plugin-integration.service';
 import { PluginConfigurationService } from '@app/core/services/plugin/plugin-configuration.service';
@@ -12,6 +15,7 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { PluginConfigurationEditorResolver } from '@app/ui/admin/tenant-configuration/models/plugin-configuration/plugin-configuration-editor.resolver';
 import { PluginEditorModule } from '@app/ui/plugin/plugin-editor.module';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
+import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
 import { CommonUiModule } from '@common/ui/common-ui.module';
 import { TranslateService } from '@ngx-translate/core';
@@ -20,6 +24,7 @@ import { TcSaveBarComponent } from '../../shared/tc-save-bar.component';
 import { TcSectionService } from '../../shared/tc-section.service';
 import { TcStateTagComponent } from '../../shared/tc-state-tag.component';
 import { TcConnectionFieldsComponent } from './tc-connection-fields.component';
+import { TcEvaluatorRestrictionsComponent } from './tc-evaluator-restrictions.component';
 import { TcExportSettingsComponent } from './export-settings/tc-export-settings.component';
 import { TcPluginSettingsModel } from './tc-plugin-settings';
 import { TcPluginSources } from './tc-plugin-sources';
@@ -29,7 +34,7 @@ import { TcPluginSources } from './tc-plugin-sources';
 	selector: 'app-tc-plugin',
 	standalone: true,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	imports: [CommonUiModule, RouterLink, ReactiveFormsModule, PluginEditorModule, TcSaveBarComponent, TcStateTagComponent, TcConnectionFieldsComponent, TcExportSettingsComponent],
+	imports: [CommonUiModule, RouterLink, ReactiveFormsModule, PluginEditorModule, TcSaveBarComponent, TcStateTagComponent, TcConnectionFieldsComponent, TcExportSettingsComponent, TcEvaluatorRestrictionsComponent],
 	providers: [TcSectionService],
 	templateUrl: './tc-plugin.component.html',
 	styleUrl: './tc-plugin.component.scss',
@@ -40,6 +45,9 @@ export class TcPluginComponent {
 	private readonly pluginConfigurationService = inject(PluginConfigurationService);
 	private readonly integrationService = inject(PluginIntegrationService);
 	private readonly fileTransformerService = inject(FileTransformerService);
+	private readonly evaluatorService = inject(EvaluatorService);
+	private readonly evaluatorHttpService = inject(EvaluatorHttpService);
+	private readonly httpErrorHandlingService = inject(HttpErrorHandlingService);
 	private readonly routerUtils = inject(RouterUtilsService);
 	private readonly router = inject(Router);
 	private readonly dialog = inject(MatDialog);
@@ -94,12 +102,26 @@ export class TcPluginComponent {
 	protected readonly testing = signal(false);
 	protected readonly testResult = signal<PluginConnectionTestResult | null>(null);
 
+	private readonly unrestrictedEvaluators = signal<EvaluatorConfiguration[] | null>(null);
+	/** Every benchmark and test of this evaluator; without the right to edit, only those the tenant already offers. */
+	protected readonly evaluatorConfiguration = computed(() => (this.unrestrictedEvaluators() ?? this.evaluatorService.availableEvaluators())?.find(x => x.evaluatorId === this.id()) ?? null);
+	protected readonly restriction = computed(() => this.sources.restriction(this.id()));
+
 	constructor() {
 		let loaded = false;
 		effect(() => {
 			if (loaded || !this.repositories()) return;
 			loaded = true;
 			untracked(() => this.settings.load().subscribe());
+		});
+		let evaluatorsLoaded = false;
+		effect(() => {
+			if (evaluatorsLoaded || !this.section.canEdit || this.kind()?.slug !== 'evaluator') return;
+			evaluatorsLoaded = true;
+			untracked(() => this.evaluatorHttpService.getUnrestrictedConfigurations().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+				next: items => this.unrestrictedEvaluators.set(items ?? []),
+				error: error => this.httpErrorHandlingService.handleBackedRequestError(error),
+			}));
 		});
 		this.section.saved.pipe(takeUntilDestroyed()).subscribe(() => this.sources.refreshAfterSave());
 	}

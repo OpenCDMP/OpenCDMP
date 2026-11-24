@@ -355,7 +355,28 @@ export class PublishDialogComponent implements OnInit {
 				this.doi.set(doi);
 				this.step.set('done');
 			},
-			error: error => this.fail(error)
+			error: error => this.recoverOrFail(error)
+		});
+	}
+
+	// A deposit whose response was lost, to a proxy timeout for instance, may still have gone through: show its DOI rather than offer a second deposit.
+	private recoverOrFail(error: any): void {
+		this.planService.getSingle(this.data.planId, [
+			nameof<Plan>(x => x.id),
+			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.id)].join('.'),
+			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.repositoryId)].join('.'),
+			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.doi)].join('.'),
+			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.entityId)].join('.'),
+			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.isActive)].join('.'),
+		]).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+			next: plan => {
+				const doi = plan?.entityDois?.find(x => x.repositoryId === this.repo.repositoryId && x.isActive === IsActive.Active);
+				if (!doi) { this.fail(error); return; }
+				this.busy.set(false);
+				this.doi.set(doi);
+				this.step.set('done');
+			},
+			error: () => this.fail(error)
 		});
 	}
 

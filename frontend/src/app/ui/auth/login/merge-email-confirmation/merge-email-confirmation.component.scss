@@ -16,3 +16,14 @@
   margin-left: 9rem;
   margin-right: 11rem;
 }
+
+@media (max-width: 768px) {
+	.merge-account-title {
+		padding-left: 1rem;
+	}
+
+	.merge-account-content {
+		margin-left: 0;
+		margin-right: 0;
+	}
+}

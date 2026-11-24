@@ -5,7 +5,7 @@
 .rv-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; &__note { display: inline-flex; align-items: center; gap: .3rem; mat-icon { font-size: 16px; width: 16px; height: 16px; } } }
 .rv-preview { padding: 1rem 1.25rem; }
 @media (max-width: 1200px) { .rv { grid-template-columns: 1fr; } }
-.rv-modes { align-self: flex-start; --mat-standard-button-toggle-height: 36px; mat-icon { font-size: 18px; width: 18px; height: 18px; margin-right: .35rem; vertical-align: -4px; } }
+.rv-modes { align-self: flex-start; max-width: 100%; flex-wrap: wrap; --mat-standard-button-toggle-height: 36px; mat-icon { font-size: 18px; width: 18px; height: 18px; margin-right: .35rem; vertical-align: -4px; } }
 
 // the aside stays in view while the preview scrolls; it is short enough to fit a screen
 .rv-aside { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }

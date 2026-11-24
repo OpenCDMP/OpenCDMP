@@ -215,7 +215,8 @@
 		},
 		"AUTO-CONPLETE": {
 			"LOADING": "ładowanie...",
-			"NO-ITEMS": "Nie znaleziono wyników!"
+			"NO-ITEMS": "Nie znaleziono wyników!",
+			"OPTION-ACTION-HINT": "Naciśnij Ctrl+Enter, aby zobaczyć szczegóły podświetlonej opcji"
 		},
 		"RICH-TEXT-EDITOR": {
 			"PLACEHOLDER": "Wpisz tekst"
@@ -333,7 +334,8 @@
 			"INTERNAL-PLAN-ENTRY-NOT-FOUND": "Pole odwołuje się do DMP, który nie istnieje w tej instalacji (id: {{id}}). Usuń tę wartość.",
 			"INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND": "Pole odwołuje się do zasobu, który nie istnieje w tej instalacji (id: {{id}}). Usuń tę wartość.",
 			"CANNOT-REMOVE-OWN-ADMIN-ROLE": "Nie możesz odebrać sobie roli administratora.",
-			"LAST-TENANT-ADMIN": "Organizacja potrzebuje co najmniej jednego administratora organizacji. Najpierw nadaj komuś innemu rolę administratora organizacji."
+			"LAST-TENANT-ADMIN": "Organizacja potrzebuje co najmniej jednego administratora organizacji. Najpierw nadaj komuś innemu rolę administratora organizacji.",
+			"DESCRIPTION-TEMPLATE-IN-USE": "Nie można usunąć tego szablonu zasobu, ponieważ używają go zasoby."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Ostrzeżenie!",
@@ -596,6 +598,8 @@
 			"NEW": "Nowy",
 			"CREATE": "Utwórz",
 			"TEST": "Testuj",
+			"CLEAR": "Wyczyść",
+			"VIEW-DETAILS": "Zobacz szczegóły",
 			"BOOLEAN": {
 				"YES": "Tak",
 				"NO": "Nie"
@@ -1281,8 +1285,18 @@
 				"CONNECTION": "Połączenie",
 				"CONNECTION-TENANT": "Gdzie działa wtyczka i jak platforma się do niej loguje.",
 				"CONNECTION-INSTALLATION": "Ta wtyczka jest zapewniana przez instalację, która zarządza jej połączeniem. Nadal możesz sprawdzić, czy odpowiada.",
+				"BENCHMARKS": "Benchmarki",
+				"BENCHMARKS-HINT": "Które benchmarki i testy tego ewaluatora mogą uruchamiać Twoi użytkownicy.",
 				"REMOVE": "Usuń wtyczkę",
 				"REMOVE-CONFIRM": "Usunąć {{name}}? Twoi użytkownicy nie będą już jej widzieć. Spowoduje to także zapisanie wszystkich innych niezapisanych zmian na tej stronie."
+			},
+			"RESTRICTIONS": {
+				"ALL": "Oferuj wszystkie benchmarki i testy",
+				"BENCHMARKS": "Benchmarki",
+				"TESTS": "Testy",
+				"NO-BENCHMARKS": "Ten ewaluator nie oferuje benchmarków.",
+				"NO-TESTS": "Ten ewaluator nie oferuje testów.",
+				"UNAVAILABLE": "Benchmarki i testy pojawią się, gdy ewaluator zostanie włączony, zapisany i zacznie odpowiadać."
 			}
 		},
 		"WORKFLOWS": {
@@ -2020,6 +2034,7 @@
 		"BLUEPRINT-NEW-VERSION": "Dostępna jest nowa wersja Blueprintu, którego użyto do utworzenia tego Planu. Możesz jej użyć, tworząc nową wersję planu.",
 		"PID-FINALIZE-MESSAGE": "Musisz sfinalizować plan przed jego zdeponowaniem.",
 		"PID-PUBLISH-MESSAGE": "Opublikuj plan w repozytorium, aby uzyskać DOI.",
+		"PUBLISHING": "Publikowanie w {{repository}} od {{time}}.",
 		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Załączony plik. Zaloguj się, aby zobaczyć podgląd",
 		"COLLABORATORS": "Współpracownicy",
 		"ACTIONS": {
@@ -4025,6 +4040,7 @@
 			"INPUT-OPTIONS": "Dodaj co najmniej jedną opcję",
 			"INPUT-UPLOAD-TYPES": "Wybierz dozwolone typy plików",
 			"INPUT-INVALID": "Ustawienie pola wejściowego jest nieprawidłowe",
+			"RULE-TARGET-MISSING": "Reguła pokazuje pytanie, które już nie istnieje",
 			"REPEATABLE": "Ustawienia powtarzania są nieprawidłowe.",
 			"QUESTIONS-OK": "Każde pytanie ma tytuł i co najmniej jedno pole wejściowe.",
 			"NO-ICON": "Nie ustawiono ikony. Autorzy zobaczą domyślną.",
@@ -4340,8 +4356,10 @@
 			"TARGET": "Pytanie do pokazania",
 			"PICK-TARGET": "Wybierz pytanie",
 			"TARGET-REQUIRED": "Wybierz pytanie do pokazania.",
+			"TARGET-MISSING": "Pytanie pokazywane przez tę regułę już nie istnieje. Wybierz inne.",
 			"QUESTIONS": "Pytania",
 			"INPUTS": "Pojedyncze pola",
+			"SECTIONS": "Sekcje",
 			"REMOVE": "Usuń regułę",
 			"YES": "Tak",
 			"NO": "Nie",
@@ -4817,6 +4835,7 @@
 			"ADD-CONTACT": "Dodaj kontakt",
 			"SEARCH-CONTACT": "Szukaj kontaktu",
 			"REMOVE-USER": "Usuń użytkownika",
+			"ADD-USER": "Dodaj użytkownika",
 			"SAVE-AND-CLOSE": "Zapisz i zamknij",
 			"SAVE-AND-CONTINUE": "Zapisz i kontynuuj",
 			"REVERSE": "Cofnij finalizację",
@@ -5729,6 +5748,7 @@
 		},
 		"ACTIONS": {
 			"REMOVE-USER": "Usuń użytkownika",
+			"ADD-USER": "Dodaj użytkownika",
 			"INVITE": "Zaproś"
 		},
 		"USERS-REQUIRED": "Wymagany co najmniej jeden użytkownik",
@@ -6288,6 +6308,8 @@
 		"DEFAULT-OPTION": "Domyślny",
 		"DEFAULT-OPTION-WITH-VALUE": "Domyślny ({{value}})",
 		"DEFAULT-VALUE-HINT": "Domyślny: {{value}}",
+		"SHOW-VALUE": "Pokaż {{field}}",
+		"HIDE-VALUE": "Ukryj {{field}}",
 		"ADMIN-CONFIGURATION": {
 			"DOCX-FILE-TRANSFORMER": {
 				"PLAN-DOCX-TEMPLATE-ID": "Szablon Docx Planu",

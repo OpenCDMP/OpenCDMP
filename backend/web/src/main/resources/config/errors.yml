@@ -297,3 +297,12 @@ error-thesaurus:
   plan-blueprint-inactive-user:
     code: 211
     message: user dont exist
+  deposit-in-progress:
+    code: 212
+    message: This plan is already being published to this repository. Wait for that to finish
+  evaluation-not-allowed:
+    code: 213
+    message: Your organisation does not allow this benchmark or test for this evaluator
+  description-template-in-use:
+    code: 214
+    message: This template is used by descriptions and cannot be deleted

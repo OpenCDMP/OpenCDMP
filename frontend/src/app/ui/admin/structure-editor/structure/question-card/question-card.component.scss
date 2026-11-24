@@ -9,12 +9,13 @@
 .qc-num { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 .4rem; border-radius: 8px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-primary); font-weight: 700; font-size: .78rem; flex: none; }
 .qc-tile { width: 32px; height: 32px; border-radius: 8px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface-variant); mat-icon { font-size: 18px; width: 18px; height: 18px; } }
 .qc-main { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px; border: none; background: none; text-align: left; padding: 0; font: inherit; color: inherit; cursor: pointer; }
-.qc-title { font-weight: 700; &--empty { font-style: italic; font-weight: 500; color: var(--mat-sys-on-surface-variant); } }
+.qc-title { font-weight: 700; overflow-wrap: anywhere; &--empty { font-style: italic; font-weight: 500; color: var(--mat-sys-on-surface-variant); } }
 .qc-meta { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; font-size: .8rem; color: var(--mat-sys-on-surface-variant); &__bad { color: var(--mat-sys-error); font-weight: 700; } }
 .qc-dot { color: var(--mat-sys-outline); }
-.qc-sem { display: inline-flex; align-items: center; gap: .2rem; padding: 0 .4rem; border-radius: 6px; background: var(--bp2-preset-bg); color: var(--mat-sys-primary); font-weight: 600; mat-icon { font-size: 13px; width: 13px; height: 13px; } }
+.qc-sem { display: inline-flex; align-items: center; gap: .2rem; min-width: 0; max-width: 100%; overflow-wrap: anywhere; padding: 0 .4rem; border-radius: 6px; background: var(--bp2-preset-bg); color: var(--mat-sys-primary); font-weight: 600; mat-icon { font-size: 13px; width: 13px; height: 13px; } }
 .qc-warn { color: var(--mat-sys-error); flex: none; }
-.qc-kebab { opacity: 0; flex: none; &:focus-visible { opacity: 1; } }
+// Touch screens have no hover to reveal it, so it only hides where hovering is possible.
+.qc-kebab { flex: none; @media (hover: hover) { opacity: 0; &:focus-visible { opacity: 1; } } }
 .qc--expanded .qc-kebab { opacity: 1; }
 .qc-head { display: flex; align-items: center; gap: .625rem; }
 .qc-title-field { flex: 1 1 0; ::ng-deep .mat-mdc-text-field-wrapper { background: var(--mat-sys-surface-container-low); } input { font-weight: 700; font-size: 1rem; } }

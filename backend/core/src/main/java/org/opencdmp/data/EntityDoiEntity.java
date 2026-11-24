@@ -1,7 +1,9 @@
 package org.opencdmp.data;
 
+import org.opencdmp.commons.enums.EntityDoiStatus;
 import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.data.converters.enums.EntityDoiStatusConverter;
 import org.opencdmp.data.converters.enums.EntityTypeConverter;
 import org.opencdmp.data.converters.enums.IsActiveConverter;
 import org.opencdmp.data.tenant.TenantScopedBaseEntity;
@@ -31,7 +33,7 @@ public class EntityDoiEntity extends TenantScopedBaseEntity {
 
     public static final String _repositoryId = "repositoryId";
 
-    @Column(name = "doi", nullable = false)
+    @Column(name = "doi")
     private String doi;
 
     public static final String _doi = "doi";
@@ -56,6 +58,12 @@ public class EntityDoiEntity extends TenantScopedBaseEntity {
     private UUID entityId;
 
     public static final String _entityId = "entityId";
+
+    @Column(name = "status", nullable = false)
+    @Convert(converter = EntityDoiStatusConverter.class)
+    private EntityDoiStatus status;
+
+    public static final String _status = "status";
 
     @Column(name = "metadata")
     private String metadata;
@@ -132,5 +140,13 @@ public class EntityDoiEntity extends TenantScopedBaseEntity {
 
     public void setMetadata(String metadata) {
         this.metadata = metadata;
+    }
+
+    public EntityDoiStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(EntityDoiStatus status) {
+        this.status = status;
     }
 }

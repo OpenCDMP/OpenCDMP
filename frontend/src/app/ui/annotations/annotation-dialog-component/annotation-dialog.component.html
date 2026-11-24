@@ -88,7 +88,7 @@
                                 @let statuses = annotationStatuses(parentThread.id);
                                 @if (statuses?.length) {
                                     @if(statuses.length > 1){
-                                        <button mat-icon-button [matMenuTriggerFor]="annotationStatuses" matTooltip="{{ 'ANNOTATION-DIALOG.ANNOTATION-STATUS.ACTIONS.EDIT' | translate }}" [matTooltipDisabled]="!canAnnotate()" [disabled]="!canAnnotate()">
+                                        <button mat-icon-button [matMenuTriggerFor]="annotationStatuses" matTooltip="{{ 'ANNOTATION-DIALOG.ANNOTATION-STATUS.ACTIONS.EDIT' | translate }}" [matTooltipDisabled]="!canAnnotate()" [disabled]="!canAnnotate()" [attr.aria-label]="'ANNOTATION-DIALOG.ANNOTATION-STATUS.ACTIONS.EDIT' | translate">
                                             <!-- @if (getSelectedStatusIcon(parentThread.id)) {
                                             <mat-icon>{{getSelectedStatusIcon(parentThread.id)}}</mat-icon>
                                             } @else { -->

@@ -21,7 +21,7 @@
     </div>
     <div class="col-auto link-icon" style="margin-top: 1rem;">
       @if (!isNew()) {
-        <button mat-icon-button type="button" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.COPY-LINK' | translate }}" (click)="copyLink($safeNavigationMigration(field()?.id))">
+        <button mat-icon-button type="button" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.COPY-LINK' | translate }}" (click)="copyLink($safeNavigationMigration(field()?.id))" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.COPY-LINK' | translate">
           <mat-icon>link</mat-icon>
         </button>
       }

@@ -13,6 +13,10 @@
 
 @use './assets/scss/material-theme.scss';
 @use './assets/scss/material-theme-overrides.scss';
+@use '@angular/cdk';
+
+// The CDK only loads .cdk-visually-hidden once a component that needs it renders, so pages without one showed the hidden text.
+@include cdk.a11y-visually-hidden();
 
 $primary: green;
 $accent: #53cfab;
@@ -767,7 +771,7 @@ button { //remove bootstrap styling !
 
 @container main-page (inline-size < 550px){
     .main-content {
-        padding: 1rem 0 !important;
+        padding: 1rem !important;
     }
     .mat-expansion-panel{
         padding-top: 0.5rem;

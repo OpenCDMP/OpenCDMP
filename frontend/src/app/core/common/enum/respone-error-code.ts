@@ -100,6 +100,7 @@ export enum ResponseErrorCode {
   MissingTotpToken = 207,
   OverlappingTenantConfigurationNotifierList = 208,
   PlanBlueprintInactiveUser = 211,
+  descriptionTemplateInUse = 214,
 }
 
 export class ResponseErrorCodeHelper {
@@ -285,6 +286,8 @@ export class ResponseErrorCodeHelper {
 		return language.instant("GENERAL.BACKEND-ERRORS.CANNOT-REMOVE-OWN-ADMIN-ROLE");
 	  case ResponseErrorCode.lastTenantAdmin:
 		return language.instant("GENERAL.BACKEND-ERRORS.LAST-TENANT-ADMIN");
+	  case ResponseErrorCode.descriptionTemplateInUse:
+		return language.instant("GENERAL.BACKEND-ERRORS.DESCRIPTION-TEMPLATE-IN-USE");
   	  default:
   	  	return language.instant("GENERAL.SNACK-BAR.NOT-FOUND");
   	}

@@ -3,6 +3,7 @@
         @if(selectedTemplate){
             <button mat-icon-button (click)="selectedTemplate = null"
                 [matTooltip]="'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.BACK'  | translate"
+                [attr.aria-label]="'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.BACK' | translate"
             >
                 <mat-icon aria-hidden="true">keyboard_arrow_left</mat-icon>
             </button>
@@ -77,7 +78,7 @@
     <div
         class="template-container"
         role="button"
-        (click)="selectedTemplate = template"
+        tabindex="0" (click)="selectedTemplate = template" (keydown.enter)="selectedTemplate = template" (keydown.space)="$event.preventDefault(); selectedTemplate = template"
         [attr.aria-label]="'NEW-DESCRIPTION.FROM-TEMPLATE.ACTIONS.PREVIEW-TEMPLATE' | translate :{name: template.label}"
     >
         <div class="template-info">

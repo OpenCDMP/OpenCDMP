@@ -11,13 +11,18 @@ $mat-card-header-size: 34px !default;
     }
 }
 
-@media (min-width: 991px) {
+@media (min-width: 992px) {
     .navbar-item-sm {
         display: none;
     }
     .navbar-item-lg {
         display: block;
     }
+}
+
+// ul.horizontal-list clips overflow, which cuts off the notification badge.
+#navigation {
+    overflow: visible;
 }
 
 .my-mat-card-avatar {

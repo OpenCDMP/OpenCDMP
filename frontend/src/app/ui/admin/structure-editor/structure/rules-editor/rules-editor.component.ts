@@ -2,11 +2,11 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormArray, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FieldType } from '@app/core/common/enum/field-type';
 import { RuleEditorModel } from '@app/ui/admin/description-template/editor/description-template-editor.model';
-import { ToCEntry } from '@app/ui/admin/description-template/editor/table-of-contents/description-template-table-of-contents-entry';
+import { ToCEntry, ToCEntryType } from '@app/ui/admin/description-template/editor/table-of-contents/description-template-table-of-contents-entry';
 import { BlueprintStructureHelper } from '../../structure.helper';
 import { InputKind, kindHasOptions, kindOf, questionIndex } from '../../input-kinds';
 import { StructureEditorBase } from '../../structure-editor-base';
-import { MatFormField, MatError } from '@angular/material/form-field';
+import { MatFormField, MatError, MatHint } from '@angular/material/form-field';
 import { MatSelect, MatOption, MatSelectTrigger, MatOptgroup } from '@angular/material/select';
 import { ReactiveAsteriskDirective } from '../../../../../../common/forms/reactive-asterisk-directive';
 import { MatIconButton, MatButton } from '@angular/material/button';
@@ -25,7 +25,7 @@ interface TargetOption { id: string, label: string, disabled: boolean, reason: s
     templateUrl: './rules-editor.component.html',
     styleUrls: ['./rules-editor.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatFormField, MatSelect, ReactiveAsteriskDirective, FormsModule, ReactiveFormsModule, MatOption, MatSelectTrigger, MatOptgroup, MatError, MatIconButton, MatTooltip, MatIcon, MatButton, TranslatePipe]
+    imports: [MatFormField, MatSelect, ReactiveAsteriskDirective, FormsModule, ReactiveFormsModule, MatOption, MatSelectTrigger, MatOptgroup, MatError, MatHint, MatIconButton, MatTooltip, MatIcon, MatButton, TranslatePipe]
 })
 export class Bp2RulesEditorComponent {
 	@Input() fieldForm: UntypedFormGroup;
@@ -34,6 +34,8 @@ export class Bp2RulesEditorComponent {
 
 	questionTargets: TargetOption[] = [];
 	inputTargets: TargetOption[] = [];
+	/** Only sections a rule already targets: the old editor offered sections, this one doesn't. */
+	sectionTargets: TargetOption[] = [];
 
 	constructor(public editor: StructureEditorBase<any, any>) { }
 
@@ -60,7 +62,14 @@ export class Bp2RulesEditorComponent {
 				if (t && (t === ownQuestionId || t === ownFieldId)) showsThis.add(f.get('id').value);
 			});
 		}));
-		this.questionTargets = []; this.inputTargets = [];
+		const targeted = new Set<string>((this.rules?.controls ?? []).map(r => r.get('target').value).filter(t => !!t));
+		this.questionTargets = []; this.inputTargets = []; this.sectionTargets = [];
+		const visitSections = (list: ToCEntry[]) => list?.forEach(e => {
+			if (e.type !== ToCEntryType.Section) return;
+			if (targeted.has(e.id)) this.sectionTargets.push({ id: e.id, label: `${e.numbering} ${e.label || this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION')}`, disabled: false, reason: '' });
+			visitSections(e.subEntries);
+		});
+		visitSections(this.editor.toCEntries);
 		questions.forEach(q => {
 			if (BlueprintStructureHelper.isPresetQuestion(q.fieldSetForm)) return;
 			const title = q.title || this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION');
@@ -71,8 +80,9 @@ export class Bp2RulesEditorComponent {
 				id: q.id, label: `${q.numbering} ${title}`, disabled: own || loop,
 				reason: own ? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.RULES.CONTAINS-THIS') : loop ? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.RULES.SHOWS-THIS') : ''
 			});
-			// an input of the same question is a valid target (the backend and the runtime only reject the input itself)
-			if (fields.length > 1) fields.forEach((f, i) => {
+			// an input of the same question is a valid target (the backend and the runtime only reject the input itself);
+			// the input of a single-input question is listed only when a rule already targets it, so that rule still shows its target
+			if (fields.length > 1 || fields.some(f => targeted.has(f.get('id').value))) fields.forEach((f, i) => {
 				if (BlueprintStructureHelper.fieldType(f) === FieldType.SYSTEM) return;
 				const id: string = f.get('id').value;
 				const label = f.get('data')?.get('label')?.value || this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.INPUT.INPUT-N', { n: i + 1 });
@@ -86,10 +96,17 @@ export class Bp2RulesEditorComponent {
 		});
 	}
 
+	/** The target id is set but no question or input has it any more, e.g. the question was deleted. */
+	targetMissing(rule: UntypedFormGroup): boolean {
+		const id: string = rule.get('target').value;
+		const ownFieldId: string = this.fieldForm?.get('id')?.value;
+		return !!id && this.editor.ruleLinks.some(l => l.sourceFieldId === ownFieldId && l.targetId === id && l.targetMissing);
+	}
+
 	targetLabel(id: string): string {
 		if (!id) return null;
 		if (!this.questionTargets.length && !this.inputTargets.length) this.computeTargets();
-		return [...this.questionTargets, ...this.inputTargets].find(t => t.id === id)?.label ?? id;
+		return [...this.questionTargets, ...this.inputTargets, ...this.sectionTargets].find(t => t.id === id)?.label ?? id;
 	}
 
 	addRule(): void {

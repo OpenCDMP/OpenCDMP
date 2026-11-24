@@ -4,7 +4,7 @@ import { TourStateService } from '@app/library/guided-tour/tour-state.service';
 import { planOverviewPageTour } from './plan-overview.tour';
 import { MatDialog } from '@angular/material/dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
 import { EvaluatorEntityType } from '@app/core/common/enum/evaluator-entity-type';
 import { FileTransformerEntityType } from '@app/core/common/enum/file-transformer-entity-type';
@@ -43,6 +43,7 @@ import { User, UserContactInfo } from '@app/core/model/user/user';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { DepositService } from '@app/core/services/deposit/deposit.service';
+import { DepositHttpService } from '@app/core/services/deposit/deposit.http.service';
 import { EvaluatorService } from '@app/core/services/evaluator/evaluator.service';
 import { FileTransformerService } from '@app/core/services/file-transformer/file-transformer.service';
 import { LockService } from '@app/core/services/lock/lock.service';
@@ -119,7 +120,7 @@ import { DateTimeFormatPipe } from '../../../core/pipes/date-time-format.pipe';
     styleUrls: ['./plan-overview.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
     providers: [VisibilityRulesService],
-    imports: [NgTemplateOutlet, MatButton, MatMenuTrigger, MatIcon, MatMenu, MatMenuItem, MatIconButton, MatTooltip, PlanActiveUsersComponent, MatCard, MatCardContent, MatDivider, MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, PlanAuthorsComponent, PlanEvaluationHistoryComponent, DescriptionPreviewComponent, PlanDepositDropdown, NgClass, ReferenceCardComponent, UpperCasePipe, TranslatePipe, DateTimeFormatPipe]
+    imports: [NgTemplateOutlet, RouterLink, MatButton, MatMenuTrigger, MatIcon, MatMenu, MatMenuItem, MatIconButton, MatTooltip, PlanActiveUsersComponent, MatCard, MatCardContent, MatDivider, MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, PlanAuthorsComponent, PlanEvaluationHistoryComponent, DescriptionPreviewComponent, PlanDepositDropdown, NgClass, ReferenceCardComponent, UpperCasePipe, TranslatePipe, DateTimeFormatPipe]
 })
 export class PlanOverviewComponent extends BaseComponent implements OnInit {
     @ViewChild('blueprintAccordion') accordion: MatAccordion;
@@ -173,6 +174,8 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
     // "What's new" tour for the 2.0.0 overview: registered for Support > Take a tour, auto-started once
     // per user after the plan (and its role-gated buttons) has rendered. Not on the public view.
     private readonly tourState = inject(TourStateService);
+    private readonly depositHttpService = inject(DepositHttpService);
+    protected pendingDeposits: EntityDoi[] = [];
     private readonly pageTour = planOverviewPageTour(inject(TranslateService));
 
 	isLoading = this.enqueueService.exhaustPipelineBusy;
@@ -246,6 +249,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
                     this.breadcrumbService.addIdResolvedValue(data.id?.toString(), data.label);
 
                     this.plan = data;
+                    this.loadPendingDeposits();
                     if (this.plan.status?.internalStatus == PlanStatusEnum.Draft) {
                         this.isDraft = true;
                     }
@@ -717,7 +721,23 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 		return (this.plan.entityDois?.length > 0);
 	}
 
+	// The backend replaces a claim older than 30 minutes as abandoned, so such a deposit is no longer shown as running.
+	private loadPendingDeposits(): void {
+		const abandonedBefore = Date.now() - 30 * 60 * 1000;
+		this.depositHttpService.getPendingDeposits(this.plan.id).pipe(takeUntil(this._destroyed)).subscribe({
+			next: deposits => this.pendingDeposits = deposits.filter(x => new Date(x.createdAt).getTime() > abandonedBefore),
+			error: () => this.pendingDeposits = []
+		});
+	}
+
+	protected repositoryLabel(repositoryId: string): string {
+		const translationKey = `PLAN-LISTING.DEPOSIT-DROPDOWN.${repositoryId.toUpperCase()}`;
+		const translated = this.language.instant(translationKey);
+		return translated !== translationKey ? translated : repositoryId;
+	}
+
 	afterDeposit(result: EntityDoi[]) {
+		this.loadPendingDeposits();
 		if (result.length > 0) {
 			this.plan.entityDois = result;
 		}

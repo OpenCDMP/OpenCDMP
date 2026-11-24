@@ -84,7 +84,7 @@ export function kindHasOptions(kind: InputKind): boolean { return kind === 'sing
 
 // ------------------------------------------------------------------ describing inputs in words
 
-export interface RuleLink { sourceFieldId: string, sourceNumbering: string, sourceTitle: string, targetId: string, targetNumbering: string, targetTitle: string, value: string }
+export interface RuleLink { sourceFieldId: string, sourceNumbering: string, sourceTitle: string, targetId: string, targetNumbering: string, targetTitle: string, value: string, targetMissing: boolean }
 
 /** Everything under the sections array as a flat list of questions with numbering, for rules and summaries. */
 export interface QuestionRef { id: string, numbering: string, title: string, fieldSetForm: UntypedFormGroup, sectionIds: string[] }
@@ -101,6 +101,18 @@ export function questionIndex(entries: ToCEntry[]): QuestionRef[] {
 
 function fieldsOf(fieldSetForm: UntypedFormGroup): UntypedFormGroup[] {
 	return ((fieldSetForm?.get('fields') as UntypedFormArray)?.controls ?? []) as UntypedFormGroup[];
+}
+
+/** Every id a rule can point at: sections (templates made in the old editor target them), questions and inputs. */
+export function ruleTargetIds(entries: ToCEntry[]): Set<string> {
+	const ids = new Set<string>();
+	const visit = (list: ToCEntry[]) => list?.forEach(e => {
+		ids.add(e.id);
+		if (e.type === ToCEntryType.FieldSet) fieldsOf(e.form as UntypedFormGroup).forEach(f => ids.add(f.get('id').value));
+		else visit(e.subEntries);
+	});
+	visit(entries);
+	return ids;
 }
 
 function optionLabel(fieldForm: UntypedFormGroup, value: string): string {
@@ -124,6 +136,7 @@ export function ruleLinks(entries: ToCEntry[], language: TranslateService): Rule
 	const questions = questionIndex(entries);
 	const byId = new Map<string, QuestionRef>();
 	questions.forEach(q => { byId.set(q.id, q); fieldsOf(q.fieldSetForm).forEach(f => byId.set(f.get('id').value, q)); });
+	const known = ruleTargetIds(entries);
 	const links: RuleLink[] = [];
 	questions.forEach(q => fieldsOf(q.fieldSetForm).forEach(f => {
 		((f.get('visibilityRules') as UntypedFormArray)?.controls ?? []).forEach(r => {
@@ -132,7 +145,8 @@ export function ruleLinks(entries: ToCEntry[], language: TranslateService): Rule
 			links.push({
 				sourceFieldId: f.get('id').value, sourceNumbering: q.numbering, sourceTitle: q.title,
 				targetId, targetNumbering: target?.numbering ?? '?', targetTitle: target?.title ?? '',
-				value: ruleValueText(f, r as UntypedFormGroup, language)
+				value: ruleValueText(f, r as UntypedFormGroup, language),
+				targetMissing: !!targetId && !known.has(targetId)
 			});
 		});
 	}));

@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { TenantConfigurationType } from "@app/core/common/enum/tenant-configuration-type";
-import { EvaluatorSource, EvaluatorTenantConfiguration, TenantConfiguration } from "@app/core/model/tenant-configuaration/tenant-configuration";
+import { EvaluatorRestriction, EvaluatorSource, EvaluatorTenantConfiguration, TenantConfiguration } from "@app/core/model/tenant-configuaration/tenant-configuration";
 import { TenantConfigurationService } from "@app/core/services/tenant-configuration/tenant-configuration.service";
 import { BreadcrumbService } from "@app/ui/misc/breadcrumb/breadcrumb.service";
 import { BaseEditorResolver } from "@common/base/base-editor.resolver";
@@ -29,6 +29,9 @@ export class EvaluatorEditorResolver extends BaseEditorResolver{
 			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.sources), nameof<EvaluatorSource>(x => x.url)].join('.'),
 			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.disableSystemSources)].join('.'),
 			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.disabledSourceIds)].join('.'),
+			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.restrictions), nameof<EvaluatorRestriction>(x => x.evaluatorId)].join('.'),
+			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.restrictions), nameof<EvaluatorRestriction>(x => x.benchmarkIds)].join('.'),
+			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.restrictions), nameof<EvaluatorRestriction>(x => x.testIds)].join('.'),
 
 
 			nameof<TenantConfiguration>(x => x.createdAt),

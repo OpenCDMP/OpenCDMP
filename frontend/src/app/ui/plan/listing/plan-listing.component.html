@@ -90,6 +90,7 @@
             @if (!versionsModeEnabled && (isLoading || listingItems?.length || hasFilters) && !isPublic) {
                 <button
                     class="filter-btn"
+                    id="plan-listing-filters-toggle"
                     data-tour="plan-listing-filters"
                     mat-stroked-button
                     (click)="toggleFilters()"
@@ -173,8 +174,12 @@
             [featuredReferenceTypes]="orderedPlanPreferencesList ?? []"
             [expandReferenceTypeId]="expandReferenceTypeId"
             [isOpen]="filtersDialogOpen"
-            (closed)="filtersDialogOpen = false"
+            (closed)="closeFilters()"
+            (keydown.escape)="closeFilters($event)"
             (filtersChanged)="onFiltersChanged($event)"
         ></app-plan-filter-dialog>
     </aside>
+    @if (filtersDialogOpen) {
+        <div class="listing-filters-backdrop" aria-hidden="true" (click)="closeFilters()"></div>
+    }
 </div>

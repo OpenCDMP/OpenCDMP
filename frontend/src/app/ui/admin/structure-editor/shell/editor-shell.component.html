@@ -126,9 +126,9 @@
 
 	<!-- ============================================================ body -->
 	<div class="bp2-body">
-		<main class="bp2-main" [attr.aria-busy]="e.saving">
+		<div class="bp2-main" [attr.aria-busy]="e.saving">
 			<ng-content />
-		</main>
+		</div>
 
 		@if (e.showProblems) {
 			<aside class="bp2-problems" role="complementary" (keydown.escape)="e.showProblems = false" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PROBLEMS.TITLE' | translate">

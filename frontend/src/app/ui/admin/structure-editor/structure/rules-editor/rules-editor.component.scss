@@ -10,5 +10,6 @@
 	&:focus { outline: 2px solid var(--mat-sys-primary); outline-offset: -1px; border-color: transparent; }
 }
 .re-add { align-self: flex-start; }
+.re-missing { color: var(--mat-sys-error); }
 .re-opt { display: flex; align-items: baseline; gap: .5rem; width: 100%; &__why { margin-left: auto; font-size: .75rem; color: var(--mat-sys-on-surface-variant); } }
 @media (max-width: 900px) { .re-row { grid-template-columns: 1fr; } .re-word { text-align: left; } }

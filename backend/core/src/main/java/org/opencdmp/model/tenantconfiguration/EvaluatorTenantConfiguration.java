@@ -12,6 +12,8 @@ public class EvaluatorTenantConfiguration {
     public static final String _disableSystemSources = "disableSystemSources";
     private List<String> disabledSourceIds;
     public static final String _disabledSourceIds = "disabledSourceIds";
+    private List<EvaluatorRestriction> restrictions;
+    public static final String _restrictions = "restrictions";
 
     public List<EvaluatorSource> getSources() {
         return sources;
@@ -34,5 +36,13 @@ public class EvaluatorTenantConfiguration {
 
     public void setDisabledSourceIds(List<String> disabledSourceIds) {
         this.disabledSourceIds = disabledSourceIds;
+    }
+
+    public List<EvaluatorRestriction> getRestrictions() {
+        return restrictions;
+    }
+
+    public void setRestrictions(List<EvaluatorRestriction> restrictions) {
+        this.restrictions = restrictions;
     }
 }

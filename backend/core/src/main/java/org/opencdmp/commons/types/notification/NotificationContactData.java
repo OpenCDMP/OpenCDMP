@@ -4,13 +4,13 @@ import java.util.List;
 
 public class NotificationContactData {
 	private List<ContactPair> contacts;
-	private List<ContactPair> BCC;
-	private List<ContactPair> CC;
+	private List<ContactPair> bcc;
+	private List<ContactPair> cc;
 
-	public NotificationContactData(List<ContactPair> contacts, List<ContactPair> BCC, List<ContactPair> CC) {
+	public NotificationContactData(List<ContactPair> contacts, List<ContactPair> bcc, List<ContactPair> cc) {
 		this.contacts = contacts;
-		this.BCC = BCC;
-		this.CC = CC;
+		this.bcc = bcc;
+		this.cc = cc;
 	}
 
 	public List<ContactPair> getContacts() {
@@ -21,19 +21,19 @@ public class NotificationContactData {
 		this.contacts = contacts;
 	}
 
-	public List<ContactPair> getBCC() {
-		return BCC;
+	public List<ContactPair> getBcc() {
+		return bcc;
 	}
 
-	public void setBCC(List<ContactPair> BCC) {
-		this.BCC = BCC;
+	public void setBcc(List<ContactPair> bcc) {
+		this.bcc = bcc;
 	}
 
-	public List<ContactPair> getCC() {
-		return CC;
+	public List<ContactPair> getCc() {
+		return cc;
 	}
 
-	public void setCC(List<ContactPair> CC) {
-		this.CC = CC;
+	public void setCc(List<ContactPair> cc) {
+		this.cc = cc;
 	}
 }

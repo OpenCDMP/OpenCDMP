@@ -4,6 +4,7 @@ import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.commons.JsonHandlingService;
+import org.opencdmp.commons.enums.EntityDoiStatus;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.data.*;
 import org.opencdmp.data.tenant.TenantScopedBaseEntity;
@@ -96,7 +97,7 @@ public class TenantPurgeServiceImpl implements TenantPurgeService {
         try {
             entityManager.loadExplicitTenantFilters();
             if (this.isTrue(normalized.getDeletePlans())) {
-                candidates.put("EntityDoi", this.queryFactory.query(EntityDoiQuery.class).collect());
+                candidates.put("EntityDoi", this.queryFactory.query(EntityDoiQuery.class).statuses(EntityDoiStatus.values()).collect());
                 candidates.put("DescriptionTag", this.queryFactory.query(DescriptionTagQuery.class).collect());
                 candidates.put("DescriptionReference", this.queryFactory.query(DescriptionReferenceQuery.class).collect());
                 candidates.put("Description", this.queryFactory.query(DescriptionQuery.class).collect());

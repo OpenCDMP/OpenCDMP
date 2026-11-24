@@ -30,7 +30,8 @@
 .ol-tag { height: 20px; font-size: .68rem; flex: none; }
 .ol-count { flex: none; }
 .ol-warn { font-size: 18px; width: 18px; height: 18px; color: var(--mat-sys-error); flex: none; }
-.ol-kebab { opacity: 0; flex: none; &:focus-visible { opacity: 1; } }
+// Touch screens have no hover to reveal it, so it only hides where hovering is possible.
+.ol-kebab { flex: none; @media (hover: hover) { opacity: 0; &:focus-visible { opacity: 1; } } }
 .ol-divider { margin: .5rem 0; }
 .ol-add { justify-content: flex-start !important; }
 .ol-rule { padding: 0 .625rem; margin: .25rem 0 0; }

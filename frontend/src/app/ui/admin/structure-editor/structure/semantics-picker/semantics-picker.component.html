@@ -11,7 +11,7 @@
 		@if (!readOnly && !(single && keys.length)) {
 			<input #search class="sem-input" type="text" [id]="listId + '-input'" [value]="query" (input)="onInput($any($event.target).value)" (focus)="onFocus()" (blur)="onBlur()" (keydown)="onKeydown($event)"
 				[placeholder]="keys.length ? '' : ((mode === 'objects' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.PLACEHOLDER' : 'PLAN-BLUEPRINT-EDITOR.SEMANTICS.PLACEHOLDER') | translate)"
-				role="combobox" [attr.aria-expanded]="open" aria-autocomplete="list" [attr.aria-controls]="listId" [attr.aria-label]="ariaLabel || (('PLAN-BLUEPRINT-EDITOR.SEMANTICS.TITLE' | translate) + (inputLabel ? ' · ' + inputLabel : ''))">
+				role="combobox" [attr.aria-expanded]="open" aria-autocomplete="list" [attr.aria-controls]="listId" [attr.aria-activedescendant]="open && flat.length ? optionId(active) : null" [attr.aria-label]="ariaLabel || (('PLAN-BLUEPRINT-EDITOR.SEMANTICS.TITLE' | translate) + (inputLabel ? ' · ' + inputLabel : ''))">
 		}
 	</label>
 	@if (open && !readOnly && flat.length) {
@@ -19,7 +19,7 @@
 			@for (s of sections; track $index) {
 				@if (s.title) { <div class="sem-list__group">{{s.title}}</div> }
 				@for (c of s.items; track c.kind + c.key) {
-					<button type="button" class="sem-item" role="option" [class.sem-item--active]="indexOf(c) === active" [attr.aria-selected]="indexOf(c) === active" (mousedown)="$event.preventDefault()" (click)="add(c.key)" (mouseenter)="active = indexOf(c)">
+					<button type="button" class="sem-item" role="option" tabindex="-1" [id]="optionId(indexOf(c))" [class.sem-item--active]="indexOf(c) === active" [attr.aria-selected]="indexOf(c) === active" (mousedown)="$event.preventDefault()" (click)="add(c.key)" (mouseenter)="active = indexOf(c)">
 						@if (c.kind === 'typed') {
 							<mat-icon aria-hidden="true">add</mat-icon>
 							<span class="sem-item__main">{{ (mode === 'objects' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.ADD-TYPED' : 'PLAN-BLUEPRINT-EDITOR.SEMANTICS.ADD-TYPED') | translate: { key: c.key } }}<span class="bp2-sub">{{ (mode === 'objects' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.ADD-TYPED-HINT' : 'PLAN-BLUEPRINT-EDITOR.SEMANTICS.ADD-TYPED-HINT') | translate}}</span></span>
